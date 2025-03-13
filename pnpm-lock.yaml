@@ -46,9 +46,6 @@ catalogs:
     '@types/react':
       specifier: ^19.0.0
       version: 19.0.10
-    '@types/react-dom':
-      specifier: ^19.0.0
-      version: 19.0.4
     react:
       specifier: 19.0.0
       version: 19.0.0
@@ -60,7 +57,7 @@ importers:
 
   .:
     devDependencies:
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:tooling/prettier
       '@turbo/gen':
@@ -82,16 +79,16 @@ importers:
         specifier: 'catalog:'
         version: 0.37.2
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tailwind-config':
+      '@reciperun/tailwind-config':
         specifier: workspace:*
         version: link:../../tooling/tailwind
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@types/node':
@@ -191,21 +188,6 @@ importers:
         specifier: 2.2.2
         version: 2.2.2
     devDependencies:
-      '@acme/api':
-        specifier: workspace:*
-        version: link:../../packages/api
-      '@acme/eslint-config':
-        specifier: workspace:*
-        version: link:../../tooling/eslint
-      '@acme/prettier-config':
-        specifier: workspace:*
-        version: link:../../tooling/prettier
-      '@acme/tailwind-config':
-        specifier: workspace:*
-        version: link:../../tooling/tailwind
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       '@babel/core':
         specifier: ^7.26.7
         version: 7.26.7
@@ -215,6 +197,21 @@ importers:
       '@babel/runtime':
         specifier: ^7.26.7
         version: 7.26.7
+      '@reciperun/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@reciperun/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@reciperun/prettier-config':
+        specifier: workspace:*
+        version: link:../../tooling/prettier
+      '@reciperun/tailwind-config':
+        specifier: workspace:*
+        version: link:../../tooling/tailwind
+      '@reciperun/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@types/babel__core':
         specifier: ^7.20.5
         version: 7.20.5
@@ -234,106 +231,15 @@ importers:
         specifier: 'catalog:'
         version: 5.7.3
 
-  apps/nextjs:
-    dependencies:
-      '@acme/api':
-        specifier: workspace:*
-        version: link:../../packages/api
-      '@acme/auth':
-        specifier: workspace:*
-        version: link:../../packages/auth
-      '@acme/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@acme/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@acme/validators':
-        specifier: workspace:*
-        version: link:../../packages/validators
-      '@t3-oss/env-nextjs':
-        specifier: ^0.12.0
-        version: 0.12.0(typescript@5.7.3)(zod@3.24.1)
-      '@tanstack/react-query':
-        specifier: 'catalog:'
-        version: 5.67.1(react@19.0.0)
-      '@trpc/client':
-        specifier: 'catalog:'
-        version: 11.0.0-rc.824(@trpc/server@11.0.0-rc.824(typescript@5.7.3))(typescript@5.7.3)
-      '@trpc/server':
-        specifier: 'catalog:'
-        version: 11.0.0-rc.824(typescript@5.7.3)
-      '@trpc/tanstack-react-query':
-        specifier: 'catalog:'
-        version: 11.0.0-rc.824(@tanstack/react-query@5.67.1(react@19.0.0))(@trpc/client@11.0.0-rc.824(@trpc/server@11.0.0-rc.824(typescript@5.7.3))(typescript@5.7.3))(@trpc/server@11.0.0-rc.824(typescript@5.7.3))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.3)
-      geist:
-        specifier: ^1.3.1
-        version: 1.3.1(next@15.2.1(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
-      next:
-        specifier: ^15.2.1
-        version: 15.2.1(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react:
-        specifier: catalog:react19
-        version: 19.0.0
-      react-dom:
-        specifier: catalog:react19
-        version: 19.0.0(react@19.0.0)
-      superjson:
-        specifier: 2.2.2
-        version: 2.2.2
-      zod:
-        specifier: 'catalog:'
-        version: 3.24.1
-    devDependencies:
-      '@acme/eslint-config':
-        specifier: workspace:*
-        version: link:../../tooling/eslint
-      '@acme/prettier-config':
-        specifier: workspace:*
-        version: link:../../tooling/prettier
-      '@acme/tailwind-config':
-        specifier: workspace:*
-        version: link:../../tooling/tailwind
-      '@acme/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
-      '@types/node':
-        specifier: ^22.10.10
-        version: 22.10.10
-      '@types/react':
-        specifier: catalog:react19
-        version: 19.0.10
-      '@types/react-dom':
-        specifier: catalog:react19
-        version: 19.0.4(@types/react@19.0.10)
-      dotenv-cli:
-        specifier: ^8.0.0
-        version: 8.0.0
-      eslint:
-        specifier: 'catalog:'
-        version: 9.19.0(jiti@1.21.7)
-      jiti:
-        specifier: ^1.21.7
-        version: 1.21.7
-      prettier:
-        specifier: 'catalog:'
-        version: 3.4.2
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 3.4.17(ts-node@10.9.2(@types/node@22.10.10)(typescript@5.7.3))
-      typescript:
-        specifier: 'catalog:'
-        version: 5.7.3
-
   packages/api:
     dependencies:
-      '@acme/auth':
+      '@reciperun/auth':
         specifier: workspace:*
         version: link:../auth
-      '@acme/db':
+      '@reciperun/db':
         specifier: workspace:*
         version: link:../db
-      '@acme/validators':
+      '@reciperun/validators':
         specifier: workspace:*
         version: link:../validators
       '@trpc/server':
@@ -346,13 +252,13 @@ importers:
         specifier: 'catalog:'
         version: 3.24.1
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       eslint:
@@ -367,15 +273,15 @@ importers:
 
   packages/auth:
     dependencies:
-      '@acme/db':
-        specifier: workspace:*
-        version: link:../db
       '@auth/core':
         specifier: 'catalog:'
         version: 0.37.2
       '@auth/drizzle-adapter':
         specifier: 'catalog:'
         version: 1.7.4
+      '@reciperun/db':
+        specifier: workspace:*
+        version: link:../db
       '@t3-oss/env-nextjs':
         specifier: ^0.12.0
         version: 0.12.0(typescript@5.7.3)(zod@3.24.1)
@@ -395,13 +301,13 @@ importers:
         specifier: 'catalog:'
         version: 3.24.1
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@types/react':
@@ -432,13 +338,13 @@ importers:
         specifier: 'catalog:'
         version: 3.24.1
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       dotenv-cli:
@@ -484,16 +390,16 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tailwind-config':
+      '@reciperun/tailwind-config':
         specifier: workspace:*
         version: link:../../tooling/tailwind
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@types/react':
@@ -521,13 +427,13 @@ importers:
         specifier: 'catalog:'
         version: 3.24.1
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
       eslint:
@@ -570,10 +476,10 @@ importers:
         specifier: ^8.21.0
         version: 8.21.0(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)
     devDependencies:
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../typescript
       eslint:
@@ -600,7 +506,7 @@ importers:
         specifier: ^0.6.11
         version: 0.6.11(@ianvs/prettier-plugin-sort-imports@4.4.1(prettier@3.4.2))(prettier@3.4.2)
     devDependencies:
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../typescript
       '@types/node':
@@ -622,13 +528,13 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.10.10)(typescript@5.7.3)))
     devDependencies:
-      '@acme/eslint-config':
+      '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../eslint
-      '@acme/prettier-config':
+      '@reciperun/prettier-config':
         specifier: workspace:*
         version: link:../prettier
-      '@acme/tsconfig':
+      '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../typescript
       '@types/node':
@@ -5183,11 +5089,6 @@ packages:
     engines: {node: '>=10'}
     deprecated: This package is no longer supported.
 
-  geist@1.3.1:
-    resolution: {integrity: sha512-Q4gC1pBVPN+D579pBaz0TRRnGA4p9UK6elDY/xizXdFk/g4EKR5g0I+4p/Kj6gM0SajDBZ/0FvDV9ey9ud7BWw==}
-    peerDependencies:
-      next: '>=13.2.0'
-
   gel@2.0.0:
     resolution: {integrity: sha512-Oq3Fjay71s00xzDc0BF/mpcLmnA+uRqMEJK8p5K4PaZjUEsxaeo+kR9OHBVAf289/qPd+0OcLOLUN0UhqiUCog==}
     engines: {node: '>= 18.0.0'}
@@ -9568,11 +9469,6 @@ snapshots:
   '@esbuild/win32-x64@0.24.0':
     optional: true
 
-  '@eslint-community/eslint-utils@4.4.1(eslint@9.19.0(jiti@1.21.7))':
-    dependencies:
-      eslint: 9.19.0(jiti@1.21.7)
-      eslint-visitor-keys: 3.4.3
-
   '@eslint-community/eslint-utils@4.4.1(eslint@9.19.0(jiti@2.4.2))':
     dependencies:
       eslint: 9.19.0(jiti@2.4.2)
@@ -11640,6 +11536,7 @@ snapshots:
   '@types/react-dom@19.0.4(@types/react@19.0.10)':
     dependencies:
       '@types/react': 19.0.10
+    optional: true
 
   '@types/react@19.0.10':
     dependencies:
@@ -13134,47 +13031,6 @@ snapshots:
 
   eslint-visitor-keys@4.2.0: {}
 
-  eslint@9.19.0(jiti@1.21.7):
-    dependencies:
-      '@eslint-community/eslint-utils': 4.4.1(eslint@9.19.0(jiti@1.21.7))
-      '@eslint-community/regexpp': 4.12.1
-      '@eslint/config-array': 0.19.1
-      '@eslint/core': 0.10.0
-      '@eslint/eslintrc': 3.2.0
-      '@eslint/js': 9.19.0
-      '@eslint/plugin-kit': 0.2.5
-      '@humanfs/node': 0.16.6
-      '@humanwhocodes/module-importer': 1.0.1
-      '@humanwhocodes/retry': 0.4.1
-      '@types/estree': 1.0.6
-      '@types/json-schema': 7.0.15
-      ajv: 6.12.6
-      chalk: 4.1.2
-      cross-spawn: 7.0.6
-      debug: 4.4.0(supports-color@9.4.0)
-      escape-string-regexp: 4.0.0
-      eslint-scope: 8.2.0
-      eslint-visitor-keys: 4.2.0
-      espree: 10.3.0
-      esquery: 1.6.0
-      esutils: 2.0.3
-      fast-deep-equal: 3.1.3
-      file-entry-cache: 8.0.0
-      find-up: 5.0.0
-      glob-parent: 6.0.2
-      ignore: 5.3.2
-      imurmurhash: 0.1.4
-      is-glob: 4.0.3
-      json-stable-stringify-without-jsonify: 1.0.1
-      lodash.merge: 4.6.2
-      minimatch: 3.1.2
-      natural-compare: 1.4.0
-      optionator: 0.9.4
-    optionalDependencies:
-      jiti: 1.21.7
-    transitivePeerDependencies:
-      - supports-color
-
   eslint@9.19.0(jiti@2.4.2):
     dependencies:
       '@eslint-community/eslint-utils': 4.4.1(eslint@9.19.0(jiti@2.4.2))
@@ -13658,10 +13514,6 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       wide-align: 1.1.5
-
-  geist@1.3.1(next@15.2.1(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)):
-    dependencies:
-      next: 15.2.1(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
 
   gel@2.0.0:
     dependencies:
