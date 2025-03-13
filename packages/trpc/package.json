@@ -1,5 +1,5 @@
 {
-  "name": "@reciperun/api",
+  "name": "@reciperun/trpc",
   "version": "0.1.0",
   "private": true,
   "type": "module",

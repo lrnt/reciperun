@@ -197,9 +197,6 @@ importers:
       '@babel/runtime':
         specifier: ^7.26.7
         version: 7.26.7
-      '@reciperun/api':
-        specifier: workspace:*
-        version: link:../../packages/api
       '@reciperun/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
@@ -209,6 +206,9 @@ importers:
       '@reciperun/tailwind-config':
         specifier: workspace:*
         version: link:../../tooling/tailwind
+      '@reciperun/trpc':
+        specifier: workspace:*
+        version: link:../../packages/trpc
       '@reciperun/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
@@ -227,46 +227,6 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 3.4.17(ts-node@10.9.2(@types/node@22.10.10)(typescript@5.7.3))
-      typescript:
-        specifier: 'catalog:'
-        version: 5.7.3
-
-  packages/api:
-    dependencies:
-      '@reciperun/auth':
-        specifier: workspace:*
-        version: link:../auth
-      '@reciperun/db':
-        specifier: workspace:*
-        version: link:../db
-      '@reciperun/validators':
-        specifier: workspace:*
-        version: link:../validators
-      '@trpc/server':
-        specifier: 'catalog:'
-        version: 11.0.0-rc.824(typescript@5.7.3)
-      superjson:
-        specifier: 2.2.2
-        version: 2.2.2
-      zod:
-        specifier: 'catalog:'
-        version: 3.24.1
-    devDependencies:
-      '@reciperun/eslint-config':
-        specifier: workspace:*
-        version: link:../../tooling/eslint
-      '@reciperun/prettier-config':
-        specifier: workspace:*
-        version: link:../../tooling/prettier
-      '@reciperun/tsconfig':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
-      eslint:
-        specifier: 'catalog:'
-        version: 9.19.0(jiti@2.4.2)
-      prettier:
-        specifier: 'catalog:'
-        version: 3.4.2
       typescript:
         specifier: 'catalog:'
         version: 5.7.3
@@ -353,6 +313,46 @@ importers:
       drizzle-kit:
         specifier: ^0.30.2
         version: 0.30.5
+      eslint:
+        specifier: 'catalog:'
+        version: 9.19.0(jiti@2.4.2)
+      prettier:
+        specifier: 'catalog:'
+        version: 3.4.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.7.3
+
+  packages/trpc:
+    dependencies:
+      '@reciperun/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@reciperun/db':
+        specifier: workspace:*
+        version: link:../db
+      '@reciperun/validators':
+        specifier: workspace:*
+        version: link:../validators
+      '@trpc/server':
+        specifier: 'catalog:'
+        version: 11.0.0-rc.824(typescript@5.7.3)
+      superjson:
+        specifier: 2.2.2
+        version: 2.2.2
+      zod:
+        specifier: 'catalog:'
+        version: 3.24.1
+    devDependencies:
+      '@reciperun/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@reciperun/prettier-config':
+        specifier: workspace:*
+        version: link:../../tooling/prettier
+      '@reciperun/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       eslint:
         specifier: 'catalog:'
         version: 9.19.0(jiti@2.4.2)
