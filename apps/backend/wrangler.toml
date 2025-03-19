@@ -1,0 +1,17 @@
+name = "reciperun-backend"
+main = "src/index.ts"
+compatibility_date = "2023-10-16"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+ENV = "development"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "reciperun"
+database_id = "c81f3f03-ba12-40e8-b1fc-406ecbb149ff"
+preview_database_id = "63700695-a39e-422f-aa0d-90f9c24b0658"
+
+[dev]
+port = 8787

@@ -1,0 +1,33 @@
+{
+  "name": "@reciperun/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "wrangler build",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/trpc-server": "^0.1.0",
+    "@reciperun/db": "workspace:*",
+    "@reciperun/trpc": "workspace:*",
+    "@trpc/server": "catalog:",
+    "hono": "^4.2.0",
+    "superjson": "2.2.2",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240320.1",
+    "@reciperun/eslint-config": "workspace:*",
+    "@reciperun/prettier-config": "workspace:*",
+    "@reciperun/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "wrangler": "^3.39.0"
+  },
+  "prettier": "@reciperun/prettier-config"
+}
