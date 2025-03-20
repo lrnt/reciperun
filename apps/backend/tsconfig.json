@@ -1,3 +1,6 @@
 {
-  "extends": "@reciperun/tsconfig/base.json"
+  "extends": "@reciperun/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext"
+  }
 }
