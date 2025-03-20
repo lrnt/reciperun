@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm with-env tsc",
+    "build": "tsc",
     "dev": "pnpm with-env tsx watch src/index.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.8",
     "@hono/trpc-server": "^0.1.0",
+    "@reciperun/auth": "workspace:*",
     "@reciperun/db": "workspace:*",
     "@reciperun/trpc": "workspace:*",
     "@trpc/server": "catalog:",
@@ -27,7 +29,8 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "tsx": "^4.19.3",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vercel": "^41.4.1"
   },
   "prettier": "@reciperun/prettier-config"
 }

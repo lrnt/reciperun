@@ -4,8 +4,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { passkeyClient, usernameClient } from "better-auth/client/plugins";
 import { username } from "better-auth/plugins/username";
 import { passkey } from "better-auth/plugins/passkey";
-
+import { betterAuth } from "better-auth";
 import { env } from "./env";
+import { expo } from "@better-auth/expo";
 
 export const authOptions: BetterAuthOptions = {
   secret: env.AUTH_SECRET,
@@ -23,6 +24,7 @@ export const authOptions: BetterAuthOptions = {
       rpName: "reciperun",
       origin: env.BASE_URL,
     }),
+    expo(),
   ],
   advanced: {
     generateId: false,
@@ -33,3 +35,5 @@ export const authClientOptions: ClientOptions = {
   baseURL: env.BASE_URL,
   plugins: [usernameClient(), passkeyClient()],
 };
+
+export const auth = betterAuth(authOptions);
