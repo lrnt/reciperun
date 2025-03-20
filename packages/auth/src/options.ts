@@ -1,12 +1,14 @@
 import type { BetterAuthOptions, ClientOptions } from "better-auth";
-import { db } from "@reciperun/db";
+import { expo } from "@better-auth/expo";
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { passkeyClient, usernameClient } from "better-auth/client/plugins";
-import { username } from "better-auth/plugins/username";
 import { passkey } from "better-auth/plugins/passkey";
-import { betterAuth } from "better-auth";
+import { username } from "better-auth/plugins/username";
+
+import { db } from "@reciperun/db";
+
 import { env } from "./env";
-import { expo } from "@better-auth/expo";
 
 export const authOptions: BetterAuthOptions = {
   secret: env.AUTH_SECRET,
