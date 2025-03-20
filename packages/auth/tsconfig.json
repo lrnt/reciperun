@@ -1,5 +1,5 @@
 {
-  "extends": "@reciperun/tsconfig/base.json",
+  "extends": "@reciperun/tsconfig/internal-package.json",
   "include": ["src", "*.ts"],
   "exclude": ["node_modules"]
 }

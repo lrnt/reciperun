@@ -11,19 +11,19 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import type { Session } from "@reciperun/auth";
-import { auth, validateToken } from "@reciperun/auth";
-import { db } from "@reciperun/db/client";
+//import { auth } from "@reciperun/auth";
+import { db } from "@reciperun/db";
 
 /**
  * Isomorphic Session getter for API requests
  * - Expo requests will have a session token in the Authorization header
  * - Next.js requests will have a session token in cookies
  */
-const isomorphicGetSession = async (headers: Headers) => {
-  const authToken = headers.get("Authorization") ?? null;
-  if (authToken) return validateToken(authToken);
-  return auth();
-};
+// const isomorphicGetSession = async (headers: Headers) => {
+//   const authToken = headers.get("Authorization") ?? null;
+//   if (authToken) return validateToken(authToken);
+//   return auth();
+// };
 
 /**
  * 1. CONTEXT
@@ -37,15 +37,15 @@ const isomorphicGetSession = async (headers: Headers) => {
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: {
+export const createTRPCContext = (opts: {
   headers: Headers;
   session: Session | null;
 }) => {
   const authToken = opts.headers.get("Authorization") ?? null;
-  const session = await isomorphicGetSession(opts.headers);
+  const session = undefined; //await isomorphicGetSession(opts.headers);
 
-  const source = opts.headers.get("x-trpc-source") ?? "unknown";
-  console.log(">>> tRPC Request from", source, "by", session?.user);
+  //const source = opts.headers.get("x-trpc-source") ?? "unknown";
+  //console.log(">>> tRPC Request from", source, "by", session?.user);
 
   return {
     session,
@@ -133,13 +133,14 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (!ctx.session?.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
-    });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+    //if (!ctx.session?.user) {
+    //  throw new TRPCError({ code: "UNAUTHORIZED" });
+    //}
+    //return next({
+    //  ctx: {
+    //    // infers the `session` as non-nullable
+    //    session: { ...ctx.session, user: ctx.session.user },
+    //  },
+    //});
   });
