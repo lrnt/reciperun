@@ -6,8 +6,7 @@
   "exports": {
     ".": {
       "default": "./src/index.ts"
-    },
-    "./env": "./env.ts"
+    }
   },
   "license": "MIT",
   "scripts": {

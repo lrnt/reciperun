@@ -1,3 +1,10 @@
 {
-  "extends": "@reciperun/tsconfig/base.json"
+  "extends": "@reciperun/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "noEmit": false,
+    "outDir": "${configDir}/dist"
+  },
+  "include": ["api"],
+  "exclude": ["node_modules"]
 }
