@@ -2,8 +2,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { trpcServer } from '@hono/trpc-server';
 import { auth } from '@reciperun/auth';
-import { handle } from 'hono/vercel'
-import { serve } from '@hono/node-server'
+import { handle } from '@hono/node-server/vercel'
 
 import { appRouter, createTRPCContext } from '@reciperun/trpc';
 import { db, sql } from '@reciperun/db';
@@ -36,7 +35,7 @@ app.use('/api/trpc/*', trpcServer({
 
 const handler = handle(app);
 
-serve(app);
+//serve(app);
 
 export const runtime = 'nodejs'
 export const GET = handler;
