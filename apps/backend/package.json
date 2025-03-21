@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "pnpm with-env tsx watch src/index.ts",
+    "dev": "pnpm with-env tsx watch src/server.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"

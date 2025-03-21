@@ -22,8 +22,8 @@ catalogs:
       specifier: ^11.0.0-rc.824
       version: 11.0.0-rc.824
     better-auth:
-      specifier: 1.2.3
-      version: 1.2.3
+      specifier: 1.2.4
+      version: 1.2.4
     eslint:
       specifier: ^9.19.0
       version: 9.19.0
@@ -133,6 +133,9 @@ importers:
 
   apps/expo:
     dependencies:
+      '@better-auth/expo':
+        specifier: 'catalog:'
+        version: 1.2.4(better-auth@1.2.4(typescript@5.7.3))
       '@expo/metro-config':
         specifier: ^0.19.9
         version: 0.19.9
@@ -151,6 +154,9 @@ importers:
       '@trpc/tanstack-react-query':
         specifier: 'catalog:'
         version: 11.0.0-rc.824(@tanstack/react-query@5.67.1(react@19.0.0))(@trpc/client@11.0.0-rc.824(@trpc/server@11.0.0-rc.824(typescript@5.7.3))(typescript@5.7.3))(@trpc/server@11.0.0-rc.824(typescript@5.7.3))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.3)
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.2.4(typescript@5.7.3)
       expo:
         specifier: 53.0.0-canary-20250304-f08e984
         version: 53.0.0-canary-20250304-f08e984(@babel/core@7.26.7)(@babel/preset-env@7.26.7(@babel/core@7.26.7))(@expo/metro-runtime@4.0.2-canary-20250304-f08e984(react-native@0.78.0(@babel/core@7.26.7)(@babel/preset-env@7.26.7(@babel/core@7.26.7))(@react-native-community/cli-server-api@13.6.9(bufferutil@4.0.8))(@types/react@19.0.10)(bufferutil@4.0.8)(react@19.0.0)))(bufferutil@4.0.8)(graphql@15.8.0)(react-native@0.78.0(@babel/core@7.26.7)(@babel/preset-env@7.26.7(@babel/core@7.26.7))(@react-native-community/cli-server-api@13.6.9(bufferutil@4.0.8))(@types/react@19.0.10)(bufferutil@4.0.8)(react@19.0.0))(react@19.0.0)
@@ -256,7 +262,7 @@ importers:
     dependencies:
       '@better-auth/expo':
         specifier: 'catalog:'
-        version: 1.2.4(better-auth@1.2.3(typescript@5.7.3))
+        version: 1.2.4(better-auth@1.2.4(typescript@5.7.3))
       '@reciperun/db':
         specifier: workspace:*
         version: link:../db
@@ -265,7 +271,7 @@ importers:
         version: 0.12.0(typescript@5.7.3)(valibot@1.0.0-beta.15(typescript@5.7.3))(zod@3.24.1)
       better-auth:
         specifier: 'catalog:'
-        version: 1.2.3(typescript@5.7.3)
+        version: 1.2.4(typescript@5.7.3)
       zod:
         specifier: 'catalog:'
         version: 3.24.1
@@ -2824,8 +2830,8 @@ packages:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
 
-  better-auth@1.2.3:
-    resolution: {integrity: sha512-y97/ah2SOWaW81IRg36m7xMSMVl7ATaHie/nhQ0in/reVlEX/6juVPszNqq0gcTwQtFsB8oe15wQKgdf4yHP9Q==}
+  better-auth@1.2.4:
+    resolution: {integrity: sha512-/ZK2jbUjm8JwdeCLFrUWUBmexPyI9PkaLVXWLWtN60sMDHTY8B5G72wcHglo1QMFBaw4G0qFkP5ayl9k6XfDaA==}
 
   better-call@1.0.4:
     resolution: {integrity: sha512-NdAihYdkS0IOz1mtz8mw1gWacCxR9r921U8YqB+VB6++rt8edMG13vVL16Y4TBL4XkjMK/DUewEsOOFkw9LJYQ==}
@@ -7982,9 +7988,9 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@better-auth/expo@1.2.4(better-auth@1.2.3(typescript@5.7.3))':
+  '@better-auth/expo@1.2.4(better-auth@1.2.4(typescript@5.7.3))':
     dependencies:
-      better-auth: 1.2.3(typescript@5.7.3)
+      better-auth: 1.2.4(typescript@5.7.3)
       better-call: 1.0.4
       zod: 3.24.1
 
@@ -10007,7 +10013,7 @@ snapshots:
 
   basic-ftp@5.0.5: {}
 
-  better-auth@1.2.3(typescript@5.7.3):
+  better-auth@1.2.4(typescript@5.7.3):
     dependencies:
       '@better-auth/utils': 0.2.3
       '@better-fetch/fetch': 1.1.15

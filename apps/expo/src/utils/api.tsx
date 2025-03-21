@@ -6,7 +6,7 @@ import superjson from "superjson";
 import type { AppRouter } from "@reciperun/trpc";
 
 import { getBaseUrl } from "./base-url";
-import { getToken } from "./session-store";
+import { authClient } from "./auth";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,13 +32,12 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
         transformer: superjson,
         url: `${getBaseUrl()}/api/trpc`,
         headers() {
-          const headers = new Map<string, string>();
-          headers.set("x-trpc-source", "expo-react");
-
-          const token = getToken();
-          if (token) headers.set("Authorization", `Bearer ${token}`);
-
-          return Object.fromEntries(headers);
+          const headers = new Map<string, string>(); 
+          const cookies = authClient.getCookies(); 
+          if (cookies) { 
+            headers.set("Cookie", cookies); 
+          } 
+          return Object.fromEntries(headers); 
         },
       }),
     ],

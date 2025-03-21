@@ -1,13 +1,12 @@
 import { trpcServer } from "@hono/trpc-server";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import { handle } from "hono/vercel";
 
 import { auth } from "@reciperun/auth";
 import { db, sql } from "@reciperun/db";
 import { appRouter, createTRPCContext } from "@reciperun/trpc";
 
-const app = new Hono();
+export const app = new Hono();
 
 // Middleware
 app.use("*", logger());
@@ -35,10 +34,3 @@ app.use(
     },
   }),
 );
-
-export const runtime = "nodejs";
-export const GET = handle(app);
-export const POST = handle(app);
-export const PATCH = handle(app);
-export const PUT = handle(app);
-export const OPTIONS = handle(app);

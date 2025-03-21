@@ -15,7 +15,7 @@
     "lint": "eslint",
     "push": "pnpm with-env drizzle-kit push",
     "studio": "pnpm with-env drizzle-kit studio",
-    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {

@@ -3,8 +3,6 @@ import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { passkeyClient, usernameClient } from "better-auth/client/plugins";
-import { passkey } from "better-auth/plugins/passkey";
-import { username } from "better-auth/plugins/username";
 
 import { db } from "@reciperun/db";
 
@@ -16,21 +14,16 @@ export const authOptions: BetterAuthOptions = {
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  emailAndPassword: {
+    enabled: true,
+  },
   plugins: [
-    username({
-      minUsernameLength: 5,
-      maxUsernameLength: 32,
-    }),
-    passkey({
-      rpID: env.BASE_URL,
-      rpName: "reciperun",
-      origin: env.BASE_URL,
-    }),
     expo(),
   ],
   advanced: {
     generateId: false,
   },
+  trustedOrigins: ["reciperun://"],
 };
 
 export const authClientOptions: ClientOptions = {
