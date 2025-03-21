@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['./api/index.ts'],
+  entry: ['./src/index.ts'],
   noExternal: [
     '@reciperun/auth',
     '@reciperun/db',
@@ -10,5 +10,4 @@ export default defineConfig({
   sourcemap: true,
   format: 'esm',
   clean: true,
-  outDir: './dist/api'
 })
