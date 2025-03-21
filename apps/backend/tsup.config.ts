@@ -9,4 +9,6 @@ export default defineConfig({
   ],
   sourcemap: true,
   format: 'esm',
+  clean: true,
+  outDir: './dist/api'
 })
