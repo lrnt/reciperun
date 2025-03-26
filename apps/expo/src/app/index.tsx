@@ -24,7 +24,7 @@ export default function RecipesScreen() {
     isLoading,
     error,
     refetch,
-    isRefetching
+    isRefetching,
   } = useQuery(trpc.recipes.getAll.queryOptions());
 
   // Determine if we're showing cached data
@@ -84,13 +84,6 @@ export default function RecipesScreen() {
             </Text>
           </View>
         </View>
-
-        <View className="flex-row items-center">
-          <Ionicons name="restaurant-outline" size={18} color="#6b7280" />
-          <Text className="ml-1 text-sm text-gray-500">
-            Serves: {item.servings}
-          </Text>
-        </View>
       </View>
     </Pressable>
   );
@@ -103,9 +96,7 @@ export default function RecipesScreen() {
         {isCachedAndOffline && (
           <View className="flex-row items-center rounded-full bg-gray-100 px-3 py-1">
             <Ionicons name="cloud-offline-outline" size={14} color="#9ca3af" />
-            <Text className="ml-1 text-xs text-gray-500">
-              Offline
-            </Text>
+            <Text className="ml-1 text-xs text-gray-500">Offline</Text>
           </View>
         )}
       </View>
@@ -130,14 +121,7 @@ export default function RecipesScreen() {
       <StatusBar barStyle="dark-content" />
       <Stack.Screen
         options={{
-          headerTitle: "RecipeRun",
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-          headerShadowVisible: false,
-          headerStyle: {
-            backgroundColor: "#f9fafb", // gray-50
-          },
+          headerShown: false,
         }}
       />
 
@@ -163,11 +147,7 @@ export default function RecipesScreen() {
             ListEmptyComponent={
               error ? (
                 <View className="flex-1 items-center justify-center p-10">
-                  <Ionicons
-                    name="bug-outline"
-                    size={60}
-                    color="#d1d5db"
-                  />
+                  <Ionicons name="bug-outline" size={60} color="#d1d5db" />
                   <Text className="mt-4 text-center text-lg text-gray-400">
                     Looks like something went wrong
                   </Text>
