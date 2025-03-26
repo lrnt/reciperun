@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,6 +19,7 @@ import type { Recipe } from "@reciperun/trpc/router/recipes";
 import { trpc } from "~/utils/api";
 
 export default function RecipesScreen() {
+  const router = useRouter();
   const {
     data: recipes,
     isLoading,
@@ -53,8 +54,8 @@ export default function RecipesScreen() {
         elevation: 5,
       }}
       onPress={() => {
-        // Navigate to recipe detail when implemented
-        console.log("Navigate to recipe detail", item.id);
+        // Navigate to recipe detail
+        router.push(`/recipe/${item.id}`);
       }}
     >
       {item.imageUrl && (
