@@ -4,6 +4,7 @@ import {
   FlatList,
   Image,
   Pressable,
+  RefreshControl,
   StatusBar,
   Text,
   View,
@@ -22,7 +23,13 @@ export default function RecipesScreen() {
     data: recipes,
     isLoading,
     error,
+    refetch,
+    isRefetching
   } = useQuery(trpc.recipes.getAll.queryOptions());
+
+  // Determine if we're showing cached data
+  const hasCachedData = recipes && recipes.length > 0;
+  const isCachedAndOffline = error && hasCachedData;
 
   const formatTime = (minutes: number) => {
     if (minutes < 60) {
@@ -89,9 +96,23 @@ export default function RecipesScreen() {
   );
 
   const ListHeader = () => (
-    <View className="mb-6 pt-2">
-      <Text className="mb-1 text-3xl font-bold text-gray-800">Recipes</Text>
-      <Text className="text-gray-600">What would you like to cook today?</Text>
+    <View className="mb-4 pt-2">
+      <View className="mb-1 flex-row items-center justify-between">
+        <Text className="text-3xl font-bold text-gray-800">Recipes</Text>
+
+        {isCachedAndOffline && (
+          <View className="flex-row items-center rounded-full bg-gray-100 px-3 py-1">
+            <Ionicons name="cloud-offline-outline" size={14} color="#9ca3af" />
+            <Text className="ml-1 text-xs text-gray-500">
+              Offline
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Text className="mb-2 text-gray-600">
+        What would you like to cook today?
+      </Text>
     </View>
   );
 
@@ -100,18 +121,6 @@ export default function RecipesScreen() {
       <ActivityIndicator size="large" color="#f472b6" />
       <Text className="mt-4 text-lg text-gray-700">
         Loading delicious recipes...
-      </Text>
-    </View>
-  );
-
-  const ErrorView = () => (
-    <View className="mb-6 mt-4 items-center">
-      <Ionicons name="cloud-offline-outline" size={40} color="#ef4444" />
-      <Text className="mt-2 text-base font-medium text-red-500">
-        Using offline mode
-      </Text>
-      <Text className="mb-4 mt-1 text-xs text-gray-500">
-        (Couldn't connect to the recipe server)
       </Text>
     </View>
   );
@@ -142,15 +151,27 @@ export default function RecipesScreen() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
-            ListHeaderComponent={
-              <>
-                <ListHeader />
-                {error && <ErrorView />}
-              </>
+            ListHeaderComponent={<ListHeader />}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                colors={["#f472b6"]}
+                tintColor="#f472b6"
+              />
             }
             ListEmptyComponent={
               error ? (
-                <></>
+                <View className="flex-1 items-center justify-center p-10">
+                  <Ionicons
+                    name="bug-outline"
+                    size={60}
+                    color="#d1d5db"
+                  />
+                  <Text className="mt-4 text-center text-lg text-gray-400">
+                    Looks like something went wrong
+                  </Text>
+                </View>
               ) : (
                 <View className="flex-1 items-center justify-center p-10">
                   <Ionicons
