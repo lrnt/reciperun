@@ -32,8 +32,10 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
         transformer: superjson,
         url: `${getBaseUrl()}/api/trpc`,
         headers() {
-          const headers = new Map<string, string>(); 
-          const cookies = authClient.getCookies(); 
+          const headers = new Map<string, string>();
+          // FIXME: https://github.com/better-auth/better-auth/issues/1855
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+          const cookies = (authClient as any).getCookie() as string;
           if (cookies) { 
             headers.set("Cookie", cookies); 
           } 
