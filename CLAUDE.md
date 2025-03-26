@@ -1,5 +1,30 @@
 # RecipeRun Development Guide
 
+## Project Overview
+RecipeRun is a full-stack application for recipe management with a mobile app (Expo) and backend API. It uses the T3 stack in a Turborepo monorepo structure.
+
+## Tech Stack
+- **Frontend**: React Native (Expo), TailwindCSS (NativeWind)
+- **Backend**: Hono.js, tRPC
+- **Database**: PostgreSQL with Drizzle ORM
+- **Auth**: better-auth
+
+## Repository Structure
+- **apps/**: Application code
+  - **backend/**: Hono.js API server
+  - **expo/**: Mobile app
+- **packages/**: Shared libraries
+  - **auth/**: Authentication logic
+  - **db/**: Database schema and client
+  - **trpc/**: API router definitions
+- **tooling/**: Development tools configuration
+
+## Setup
+1. Install dependencies: `pnpm i`
+2. Copy `.env.example` to `.env` and configure
+3. Push database schema: `pnpm db:push`
+4. Start development servers: `pnpm dev`
+
 ## Commands
 - Build: `pnpm build` - Build all packages and apps
 - Dev: `pnpm dev` - Start all dev servers
@@ -10,6 +35,13 @@
 - Format + Fix: `pnpm format:fix` - Fix formatting
 - DB: `pnpm db:push` - Push schema changes
 - DB Studio: `pnpm db:studio` - Open DB UI
+
+## Authentication
+The project uses better-auth for authentication with email/password support. Mobile authentication works through an API endpoint at `/api/auth/*`.
+
+## Deployment
+- Backend: Deploy to Vercel or similar platform
+- Mobile: Build using Expo EAS and submit to app stores
 
 ## Code Style
 - TypeScript: Strict mode, no non-null assertions
