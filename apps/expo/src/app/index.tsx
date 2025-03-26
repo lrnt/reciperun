@@ -1,19 +1,171 @@
 import React from "react";
-import { Button, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 
-export default function Index() {
-  return (
-    <SafeAreaView className="bg-background">
-      {/* Changes page title visible on the header */}
-      <Stack.Screen options={{ title: "Reciperun" }} />
-      <View className="h-full w-full bg-background p-4">
-        <Text className="pb-2 text-center text-5xl font-bold text-foreground">
-          Reciperun
+import type { Recipe } from "@reciperun/trpc/router/recipes";
+
+import { trpc } from "~/utils/api";
+
+export default function RecipesScreen() {
+  const {
+    data: recipes,
+    isLoading,
+    error,
+  } = useQuery(trpc.recipes.getAll.queryOptions());
+
+  const formatTime = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0
+      ? `${hours} hr ${remainingMinutes} min`
+      : `${hours} hr`;
+  };
+
+  const RecipeCard = ({ item }: { item: Recipe }) => (
+    <Pressable
+      className="mb-6 overflow-hidden rounded-2xl bg-white"
+      style={{
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+      }}
+      onPress={() => {
+        // Navigate to recipe detail when implemented
+        console.log("Navigate to recipe detail", item.id);
+      }}
+    >
+      {item.imageUrl && (
+        <Image
+          source={{ uri: item.imageUrl }}
+          className="h-56 w-full"
+          resizeMode="cover"
+        />
+      )}
+      <View className="p-5">
+        <Text className="mb-2 text-2xl font-bold text-gray-800">
+          {item.title}
         </Text>
-        <Button title="Sign In" onPress={() => router.push("/sign-in")} />
-        <Button title="Sign Up" onPress={() => router.push("/sign-up")} />
+        <Text className="mb-4 text-base text-gray-600">{item.description}</Text>
+
+        <View className="mb-1 flex-row justify-between">
+          <View className="flex-row items-center">
+            <Ionicons name="time-outline" size={18} color="#6b7280" />
+            <Text className="ml-1 text-sm text-gray-500">
+              Prep: {formatTime(item.prepTime)}
+            </Text>
+          </View>
+          <View className="flex-row items-center">
+            <Ionicons name="flame-outline" size={18} color="#6b7280" />
+            <Text className="ml-1 text-sm text-gray-500">
+              Cook: {formatTime(item.cookTime)}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center">
+          <Ionicons name="restaurant-outline" size={18} color="#6b7280" />
+          <Text className="ml-1 text-sm text-gray-500">
+            Serves: {item.servings}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+
+  const ListHeader = () => (
+    <View className="mb-6 pt-2">
+      <Text className="mb-1 text-3xl font-bold text-gray-800">Recipes</Text>
+      <Text className="text-gray-600">What would you like to cook today?</Text>
+    </View>
+  );
+
+  const LoadingView = () => (
+    <View className="flex-1 items-center justify-center p-4">
+      <ActivityIndicator size="large" color="#f472b6" />
+      <Text className="mt-4 text-lg text-gray-700">
+        Loading delicious recipes...
+      </Text>
+    </View>
+  );
+
+  const ErrorView = () => (
+    <View className="mb-6 mt-4 items-center">
+      <Ionicons name="cloud-offline-outline" size={40} color="#ef4444" />
+      <Text className="mt-2 text-base font-medium text-red-500">
+        Using offline mode
+      </Text>
+      <Text className="mb-4 mt-1 text-xs text-gray-500">
+        (Couldn't connect to the recipe server)
+      </Text>
+    </View>
+  );
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" />
+      <Stack.Screen
+        options={{
+          headerTitle: "RecipeRun",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: "#f9fafb", // gray-50
+          },
+        }}
+      />
+
+      <View className="flex-1 px-4">
+        {isLoading ? (
+          <LoadingView />
+        ) : (
+          <FlatList
+            data={recipes}
+            renderItem={({ item }) => <RecipeCard item={item} />}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            ListHeaderComponent={
+              <>
+                <ListHeader />
+                {error && <ErrorView />}
+              </>
+            }
+            ListEmptyComponent={
+              error ? (
+                <></>
+              ) : (
+                <View className="flex-1 items-center justify-center p-10">
+                  <Ionicons
+                    name="restaurant-outline"
+                    size={60}
+                    color="#d1d5db"
+                  />
+                  <Text className="mt-4 text-center text-lg text-gray-400">
+                    No recipes found
+                  </Text>
+                </View>
+              )
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );

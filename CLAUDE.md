@@ -51,3 +51,40 @@ The project uses better-auth for authentication with email/password support. Mob
 - Error Handling: No non-null assertions, proper error checks
 - Monorepo: Packages in `/packages`, apps in `/apps`, tooling in `/tooling`
 - Styling: Tailwind CSS for styling (packages tailwind and nativewind)
+
+## Design Aesthetic
+
+1. **Color Palette**: 
+   - White content areas for recipes and instructions
+   - Accent colors for interactive elements (highlighted text, buttons)
+
+2. **Typography**:
+   - Clean sans-serif fonts throughout
+   - Bold headers with high contrast against backgrounds
+   - Hierarchical text sizing for easy scanning (larger titles, medium subheadings, smaller body text)
+
+3. **UI Components**:
+   - Rounded corners on all containers and cards
+   - Simple iconography with consistent styling
+   - Generous white space between elements
+   - Shadow effects for subtle depth on cards
+
+4. **Layout Structure**:
+   - Single column, vertically scrolling content
+   - Card-based information presentation
+   - Clear step numbering for recipes
+   - Bottom navigation with simple icons
+
+5. **Visual Elements**:
+   - High-quality food photography with consistent styling
+   - Minimal decorative elements (only where they add value)
+   - Progress indicators (timer circles) for action steps
+   - Small badges/awards displayed subtly
+
+6. **Interaction Design**:
+   - Prominent tap targets
+   - Clear visual feedback for interactive elements
+   - Simplified user flows with minimal steps
+   - "Hands-free" consideration for cooking contexts
+
+This design approach prioritizes clarity, usability, and visual appeal for a cooking app, making information easily scannable while cooking.
