@@ -435,4 +435,86 @@ export const recipesRouter = {
       }
       return recipe;
     }),
+    
+  // Import recipe from URL
+  importFromUrl: publicProcedure
+    .input(z.object({ url: z.string().url() }))
+    .mutation(async ({ input }) => {
+      try {
+        console.log(`Attempting to import recipe from URL: ${input.url}`);
+        
+        // Fetch the webpage content
+        const response = await fetch(input.url);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
+        }
+        
+        const html = await response.text();
+        
+        // Look for JSON-LD data in the page
+        const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+        const matches = [...html.matchAll(jsonLdRegex)];
+        
+        if (matches.length > 0) {
+          console.log("JSON-LD data found:");
+          
+          // Define types for JSON-LD data
+          interface JsonLdEntity {
+            "@type"?: string | string[];
+            "@graph"?: JsonLdEntity[];
+            [key: string]: unknown;
+          }
+          
+          // Process each JSON-LD block
+          for (const match of matches) {
+            try {
+              // Ensure we have valid JSON content
+              const jsonContent = match[1];
+              if (!jsonContent) continue;
+              
+              const jsonData = JSON.parse(jsonContent) as JsonLdEntity;
+              
+              const isRecipe = (entity: JsonLdEntity): boolean => {
+                const entityType = entity["@type"];
+                
+                if (typeof entityType === "string") {
+                  return entityType === "Recipe";
+                }
+                
+                if (Array.isArray(entityType)) {
+                  return entityType.includes("Recipe");
+                }
+                
+                return false;
+              };
+              
+              // Check if it's a recipe
+              if (
+                isRecipe(jsonData) || 
+                (jsonData["@graph"]?.some(item => isRecipe(item)))
+              ) {
+                console.log("Recipe JSON-LD data found:", JSON.stringify(jsonData, null, 2));
+                return { success: true, foundJsonLd: true, url: input.url };
+              } else {
+                console.log("JSON-LD data found but not a recipe:", JSON.stringify(jsonData, null, 2));
+              }
+            } catch (parseError) {
+              console.error("Error parsing JSON-LD:", parseError);
+            }
+          }
+        } else {
+          console.log("No JSON-LD data found on the page");
+        }
+        
+        return { 
+          success: true, 
+          foundJsonLd: matches.length > 0,
+          url: input.url 
+        };
+      } catch (error) {
+        console.error("Error importing recipe:", error);
+        throw new Error(`Failed to import recipe: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    }),
 } satisfies TRPCRouterRecord;
