@@ -59,7 +59,7 @@ export const instructionStepSchema = z
       .string()
       .optional()
       .describe(
-        "Instruction text with markdown-style links to reference ingredients (e.g., 'Mix [flour](#0) and [sugar](#1)')",
+        "Instruction text with markdown-style links to reference ingredients in the annotations array, the link should be the index of the annotation in the annotations array (e.g., 'Mix [flour](#0) and [sugar](#1)')",
       ),
     annotations: z
       .array(annotationSchema)
