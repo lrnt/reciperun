@@ -18,6 +18,8 @@ import { trpc } from "~/utils/api";
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  // Default to 4 servings (4x the base recipe which is for 1 serving)
+  const [servingsMultiplier, setServingsMultiplier] = React.useState(4);
 
   const {
     data: recipe,
@@ -106,62 +108,95 @@ export default function RecipeDetailScreen() {
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {recipe.imageUrl && (
-          <Image
-            source={{ uri: recipe.imageUrl }}
-            className="h-64 w-full"
-            resizeMode="cover"
-          />
-        )}
+        <View className="relative">
+          {recipe.imageUrl && (
+            <Image
+              source={{ uri: recipe.imageUrl }}
+              className="h-64 w-full"
+              resizeMode="cover"
+            />
+          )}
+          
+          {/* Time overlays - stacked */}
+          <View className="absolute bottom-3 right-3 gap-2">
+            <View className="flex-row items-center rounded-full bg-black/70 px-3 py-1.5">
+              <Ionicons name="time-outline" size={16} color="#fff" />
+              <Text className="ml-1 text-sm font-medium text-white">
+                Prep: {formatTime(recipe.prepTime)}
+              </Text>
+            </View>
+            
+            <View className="flex-row items-center rounded-full bg-black/70 px-3 py-1.5">
+              <Ionicons name="flame-outline" size={16} color="#fff" />
+              <Text className="ml-1 text-sm font-medium text-white">
+                Cook: {formatTime(recipe.cookTime)}
+              </Text>
+            </View>
+          </View>
+        </View>
 
         <View className="px-4 py-6">
           <Text className="mb-2 text-2xl font-bold text-gray-800">
             {recipe.title}
           </Text>
-          <Text className="mb-4 text-base text-gray-600">
+          <Text className="mb-5 text-base text-gray-600">
             {recipe.description}
           </Text>
 
-          <View className="mb-6 flex-row justify-between rounded-xl bg-gray-100 p-4">
-            <View className="items-center">
-              <Ionicons name="time-outline" size={24} color="#6b7280" />
-              <Text className="mt-1 text-xs font-medium text-gray-500">
-                Prep Time
-              </Text>
-              <Text className="text-sm font-bold text-gray-700">
-                {formatTime(recipe.prepTime)}
-              </Text>
-            </View>
-            <View className="items-center">
-              <Ionicons name="flame-outline" size={24} color="#6b7280" />
-              <Text className="mt-1 text-xs font-medium text-gray-500">
-                Cook Time
-              </Text>
-              <Text className="text-sm font-bold text-gray-700">
-                {formatTime(recipe.cookTime)}
-              </Text>
-            </View>
-            <View className="items-center">
-              <Ionicons name="restaurant-outline" size={24} color="#6b7280" />
-              <Text className="mt-1 text-xs font-medium text-gray-500">
-                Servings
-              </Text>
-              <Text className="text-sm font-bold text-gray-700">
-                {recipe.servings}
-              </Text>
-            </View>
-          </View>
-
           <View className="mb-6">
-            <Text className="mb-3 text-xl font-bold text-gray-800">
-              Ingredients
-            </Text>
-            {recipe.ingredients.map((ingredient, index) => (
-              <View key={index} className="mb-2 flex-row">
-                <Text className="mr-2 text-pink-500">•</Text>
-                <Text className="text-gray-700">{ingredient}</Text>
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-xl font-bold text-gray-800">
+                Ingredients
+              </Text>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-sm text-gray-600">Servings:</Text>
+                <Pressable 
+                  className="h-7 w-7 items-center justify-center rounded-full bg-gray-200"
+                  onPress={() => {
+                    if (servingsMultiplier > 1) {
+                      setServingsMultiplier(prev => prev - 1);
+                    }
+                  }}
+                >
+                  <Text className="font-bold text-gray-700">-</Text>
+                </Pressable>
+                <Text className="mx-2 text-base font-medium text-gray-700">
+                  {servingsMultiplier}
+                </Text>
+                <Pressable 
+                  className="h-7 w-7 items-center justify-center rounded-full bg-gray-200"
+                  onPress={() => {
+                    setServingsMultiplier(prev => prev + 1);
+                  }}
+                >
+                  <Text className="font-bold text-gray-700">+</Text>
+                </Pressable>
               </View>
-            ))}
+            </View>
+            
+            {recipe.ingredients.map((ingredient, index) => {
+              // Calculate scaled quantity
+              const scaledQuantity = ingredient.quantity * servingsMultiplier;
+              
+              // Format quantity - round to 2 decimal places and remove trailing zeros
+              const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
+              
+              const quantityText = ingredient.unit && ingredient.unit !== "to taste" && ingredient.unit !== "for garnish" 
+                ? `${formattedQuantity} ${ingredient.unit}` 
+                : ingredient.unit === "to taste" || ingredient.unit === "for garnish"
+                  ? ingredient.unit
+                  : formattedQuantity;
+                
+              return (
+                <View key={index} className="mb-2 flex-row justify-between border-b border-gray-100 pb-2">
+                  <View className="flex-row flex-1 mr-4">
+                    <Text className="mr-2 text-pink-500">•</Text>
+                    <Text className="text-gray-700">{ingredient.name}</Text>
+                  </View>
+                  <Text className="font-medium text-gray-600">{quantityText}</Text>
+                </View>
+              );
+            })}
           </View>
 
           <View>
