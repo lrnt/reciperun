@@ -1,164 +1,179 @@
 import React from "react";
 import {
   ActivityIndicator,
-  ScrollView,
   Image,
   Pressable,
+  ScrollView,
   StatusBar,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack, useRouter, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
 import { trpc } from "~/utils/api";
 
-// Define the Ingredient type to match what's in the router
+// Define types to match what's in the router
 interface Ingredient {
   name: string;
-  quantity: number;
+  quantity?: number;
   unit?: string;
+  note?: string;
+}
+
+interface Annotation {
+  ingredientIndex?: number;
+  portionUsed?: number;
+  customText?: string;
+  displayName?: string;
+  note?: string;
 }
 
 // Function to render annotated text with ingredient references
 const renderAnnotatedText = (
   annotatedText: string,
-  annotations: Record<string, any> | undefined,
+  annotations: Annotation[] | undefined,
   ingredients: Ingredient[],
-  servingsMultiplier: number
+  servingsMultiplier: number,
 ) => {
   if (!annotatedText || !annotations) {
     return <Text className="text-gray-700">{annotatedText || ""}</Text>;
   }
 
   // Parse the markdown-style links in the text
-  // Format example: "Bring [salted water](#1) to boil and cook [spaghetti](#2)"
-  
+  // Format example: "Bring [salted water](#0) to boil and cook [spaghetti](#1)"
+
   // We'll split the text by markdown links and render each part
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let currentIndex = 0;
-  
-  // Regular expression to find markdown links: [text](#id)
+
+  // Regular expression to find markdown links: [text](#index)
   const linkRegex = /\[([^\]]+)\]\(#([^)]+)\)/g;
   let match;
-  
+
   while ((match = linkRegex.exec(annotatedText)) !== null) {
-    const [fullMatch, linkText, linkId] = match;
+    const [fullMatch, linkText, linkIndexStr] = match;
     const matchIndex = match.index;
-    
+
     // Add text before the link
     if (matchIndex > lastIndex) {
       const textBefore = annotatedText.substring(lastIndex, matchIndex);
       parts.push(
         <Text key={`text-${currentIndex}`} className="text-gray-700">
           {textBefore}
-        </Text>
+        </Text>,
       );
       currentIndex++;
     }
-    
-    // Process the link based on the annotation
-    if (!annotations) {
-      // If annotations are undefined, just render the link text
+
+    // Process the link based on the annotation index
+    const linkIndex = linkIndexStr ? parseInt(linkIndexStr, 10) : NaN;
+
+    if (
+      isNaN(linkIndex) ||
+      linkIndex < 0 ||
+      linkIndex >= annotations.length
+    ) {
+      // Invalid index, just render the link text
       parts.push(
         <Text key={`link-${currentIndex}`} className="text-gray-700">
           {linkText}
-        </Text>
+        </Text>,
       );
       currentIndex++;
     } else {
-      // Since we checked that annotations exists at the start of the function,
-      // this is safe to access, but TypeScript is cautious
-      // TypeScript already validated that annotations exists in this block
-      // @ts-ignore - We already checked that annotations exists at the start of the function
-      const annotation = annotations[linkId];
-      if (annotation) {
-        // Check if it's an ingredient reference
-        if (annotation.ingredientIndex !== undefined && 
-            annotation.ingredientIndex >= 0 && 
-            annotation.ingredientIndex < ingredients.length) {
-          
-          const ingredient = ingredients[annotation.ingredientIndex];
-          
-          // Calculate quantity text
-          let quantityText = '';
-          if (ingredient === undefined) {
-            quantityText = "unknown";
-          } else if (annotation.customText) {
-            // Use custom text if provided
-            quantityText = annotation.customText;
-          } else if (annotation.portionUsed && annotation.portionUsed !== 1 && ingredient) {
-            // Format partial quantities
-            const portionUsed = annotation.portionUsed;
-            const scaledQuantity = ingredient.quantity * servingsMultiplier * portionUsed;
-            const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
-            quantityText = ingredient.unit 
-              ? `${formattedQuantity} ${ingredient.unit}`
-              : formattedQuantity;
-          } else if (ingredient) {
-            // Full quantity
-            const scaledQuantity = ingredient.quantity * servingsMultiplier;
-            const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
-            quantityText = ingredient.unit 
-              ? `${formattedQuantity} ${ingredient.unit}`
-              : formattedQuantity;
-          }
-          
-          // Render the ingredient with its quantity
-          parts.push(
-            <Text key={`link-${currentIndex}`} className="text-gray-700">
-              <Text className="font-semibold">{linkText}</Text>
-              <Text className="text-pink-600"> ({quantityText})</Text>
-              {annotation.note && (
-                <Text className="italic text-gray-500"> {annotation.note}</Text>
-              )}
-            </Text>
-          );
+      // Get the annotation from the array using the index
+      // annotations is guaranteed to exist here due to our previous check
+      const annotation = annotations[linkIndex];
+
+      // Check if it's an ingredient reference
+      if (
+        annotation?.ingredientIndex !== undefined &&
+        annotation.ingredientIndex >= 0 &&
+        annotation.ingredientIndex < ingredients.length
+      ) {
+        const ingredient = ingredients[annotation.ingredientIndex];
+
+        // Calculate quantity text
+        let quantityText = "";
+        if (ingredient === undefined) {
+          quantityText = "unknown";
+        } else if (annotation.customText) {
+          // Use custom text if provided
+          quantityText = annotation.customText;
+        } else if (ingredient.note) {
+          // Use ingredient note if available
+          quantityText = ingredient.note;
+        } else if (ingredient.quantity === undefined) {
+          // No quantity available
+          quantityText = "";
+        } else if (
+          annotation.portionUsed !== undefined &&
+          annotation.portionUsed !== 1
+        ) {
+          // Format partial quantities
+          const portionUsed = annotation.portionUsed;
+          const scaledQuantity =
+            ingredient.quantity * servingsMultiplier * portionUsed;
+          const formattedQuantity = parseFloat(
+            scaledQuantity.toFixed(2),
+          ).toString();
+          quantityText = ingredient.unit
+            ? `${formattedQuantity} ${ingredient.unit}`
+            : formattedQuantity;
         } else {
-          // This is a non-ingredient annotation (e.g., a note)
-          parts.push(
-            <Text key={`link-${currentIndex}`} className="text-gray-700">
-              <Text className="font-semibold">{linkText}</Text>
-              {annotation.note && (
-                <Text className="italic text-gray-500"> ({annotation.note})</Text>
-              )}
-            </Text>
-          );
+          // Full quantity
+          const scaledQuantity = ingredient.quantity * servingsMultiplier;
+          const formattedQuantity = parseFloat(
+            scaledQuantity.toFixed(2),
+          ).toString();
+          quantityText = ingredient.unit
+            ? `${formattedQuantity} ${ingredient.unit}`
+            : formattedQuantity;
         }
-        currentIndex++;
-      } else {
-        // Annotation not found, just render the text
+
+        // Render the ingredient with its quantity
         parts.push(
           <Text key={`link-${currentIndex}`} className="text-gray-700">
-            {linkText}
-          </Text>
+            <Text className="font-semibold">{linkText}</Text>
+            <Text className="text-pink-600"> ({quantityText})</Text>
+            {annotation.note && (
+              <Text className="italic text-gray-500"> {annotation.note}</Text>
+            )}
+          </Text>,
         );
-        currentIndex++;
+      } else {
+        // This is a non-ingredient annotation (e.g., a note)
+        parts.push(
+          <Text key={`link-${currentIndex}`} className="text-gray-700">
+            <Text className="font-semibold">{linkText}</Text>
+            {annotation?.note && (
+              <Text className="italic text-gray-500"> ({annotation.note})</Text>
+            )}
+          </Text>,
+        );
       }
+      currentIndex++;
     }
-    
+
     lastIndex = matchIndex + fullMatch.length;
   }
-  
+
   // Add any remaining text after the last link
   if (lastIndex < annotatedText.length) {
     const textAfter = annotatedText.substring(lastIndex);
     parts.push(
       <Text key={`text-${currentIndex}`} className="text-gray-700">
         {textAfter}
-      </Text>
+      </Text>,
     );
   }
-  
+
   // Return the combined elements
-  return (
-    <Text className="text-gray-700">
-      {parts}
-    </Text>
-  );
+  return <Text className="text-gray-700">{parts}</Text>;
 };
 
 export default function RecipeDetailScreen() {
@@ -263,7 +278,7 @@ export default function RecipeDetailScreen() {
               resizeMode="cover"
             />
           )}
-          
+
           {/* Time overlays - stacked */}
           <View className="absolute bottom-3 right-3 gap-2">
             <View className="flex-row items-center rounded-full bg-black/70 px-3 py-1.5">
@@ -272,7 +287,7 @@ export default function RecipeDetailScreen() {
                 Prep: {formatTime(recipe.prepTime)}
               </Text>
             </View>
-            
+
             <View className="flex-row items-center rounded-full bg-black/70 px-3 py-1.5">
               <Ionicons name="flame-outline" size={16} color="#fff" />
               <Text className="ml-1 text-sm font-medium text-white">
@@ -297,11 +312,11 @@ export default function RecipeDetailScreen() {
               </Text>
               <View className="flex-row items-center">
                 <Text className="mr-1 text-sm text-gray-600">Servings:</Text>
-                <Pressable 
+                <Pressable
                   className="h-7 w-7 items-center justify-center rounded-full bg-gray-200"
                   onPress={() => {
                     if (servingsMultiplier > 1) {
-                      setServingsMultiplier(prev => prev - 1);
+                      setServingsMultiplier((prev) => prev - 1);
                     }
                   }}
                 >
@@ -310,37 +325,50 @@ export default function RecipeDetailScreen() {
                 <Text className="mx-2 text-base font-medium text-gray-700">
                   {servingsMultiplier}
                 </Text>
-                <Pressable 
+                <Pressable
                   className="h-7 w-7 items-center justify-center rounded-full bg-gray-200"
                   onPress={() => {
-                    setServingsMultiplier(prev => prev + 1);
+                    setServingsMultiplier((prev) => prev + 1);
                   }}
                 >
                   <Text className="font-bold text-gray-700">+</Text>
                 </Pressable>
               </View>
             </View>
-            
+
             {recipe.ingredients.map((ingredient, index) => {
-              // Calculate scaled quantity
-              const scaledQuantity = ingredient.quantity * servingsMultiplier;
+              let quantityText = "";
               
-              // Format quantity - round to 2 decimal places and remove trailing zeros
-              const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
-              
-              const quantityText = ingredient.unit && ingredient.unit !== "to taste" && ingredient.unit !== "for garnish" 
-                ? `${formattedQuantity} ${ingredient.unit}` 
-                : ingredient.unit === "to taste" || ingredient.unit === "for garnish"
-                  ? ingredient.unit
-                  : formattedQuantity;
+              if (ingredient.note) {
+                // If there's a note like "to taste" or "for garnish", use that
+                quantityText = ingredient.note;
+              } else if (ingredient.quantity !== undefined) {
+                // Calculate scaled quantity when it exists
+                const scaledQuantity = ingredient.quantity * servingsMultiplier;
                 
+                // Format quantity - round to 2 decimal places and remove trailing zeros
+                const formattedQuantity = parseFloat(
+                  scaledQuantity.toFixed(2),
+                ).toString();
+                
+                // Combine with unit if available
+                quantityText = ingredient.unit 
+                  ? `${formattedQuantity} ${ingredient.unit}` 
+                  : formattedQuantity;
+              }
+
               return (
-                <View key={index} className="mb-2 flex-row justify-between border-b border-gray-100 pb-2">
-                  <View className="flex-row flex-1 mr-4">
+                <View
+                  key={index}
+                  className="mb-2 flex-row justify-between border-b border-gray-100 pb-2"
+                >
+                  <View className="mr-4 flex-1 flex-row">
                     <Text className="mr-2 text-pink-500">•</Text>
                     <Text className="text-gray-700">{ingredient.name}</Text>
                   </View>
-                  <Text className="font-medium text-gray-600">{quantityText}</Text>
+                  <Text className="font-medium text-gray-600">
+                    {quantityText}
+                  </Text>
                 </View>
               );
             })}
@@ -357,77 +385,22 @@ export default function RecipeDetailScreen() {
                     <View className="mr-3 h-6 w-6 items-center justify-center rounded-full bg-pink-500">
                       <Text className="font-bold text-white">{index + 1}</Text>
                     </View>
-                    
+
                     {instruction.annotatedText ? (
                       <View className="flex-1">
                         {/* Parse and render the annotated text */}
-                        {renderAnnotatedText(instruction.annotatedText, instruction.annotations, recipe.ingredients, servingsMultiplier)}
+                        {renderAnnotatedText(
+                          instruction.annotatedText,
+                          instruction.annotations,
+                          recipe.ingredients,
+                          servingsMultiplier,
+                        )}
                       </View>
-                    ) : instruction.ingredientsUsed && instruction.ingredientsUsed.length > 0 ? (
-                      // Try ingredient enhancement approach
-                      <Text className="text-gray-700 flex-1">
-                        {(() => {
-                          // Create an enhanced version of the text with ingredient quantities
-                          let enhancedText = instruction.text;
-                          
-                          // First, collect all ingredient information
-                          const ingredientInfos = instruction.ingredientsUsed.map(ref => {
-                            // Ensure index is valid
-                            if (ref.ingredientIndex < 0 || ref.ingredientIndex >= recipe.ingredients.length) {
-                              return { name: "unknown", displayText: "" };
-                            }
-                            
-                            const ingredient = recipe.ingredients[ref.ingredientIndex];
-                            if (!ingredient) {
-                              return { name: "unknown", displayText: "" };
-                            }
-                            
-                            // Calculate scaled quantity
-                            let displayText = '';
-                            
-                            if (ref.customText) {
-                              // Use custom text if provided
-                              displayText = ref.customText;
-                            } else if (ref.portionUsed && ref.portionUsed !== 1) {
-                              // Format partial quantities
-                              const portionUsed = ref.portionUsed;
-                              const scaledQuantity = ingredient.quantity * servingsMultiplier * portionUsed;
-                              const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
-                              displayText = ingredient.unit 
-                                ? `${formattedQuantity} ${ingredient.unit}`
-                                : formattedQuantity;
-                            } else {
-                              // Full quantity
-                              const scaledQuantity = ingredient.quantity * servingsMultiplier;
-                              const formattedQuantity = parseFloat(scaledQuantity.toFixed(2)).toString();
-                              displayText = ingredient.unit 
-                                ? `${formattedQuantity} ${ingredient.unit}`
-                                : formattedQuantity;
-                            }
-                            
-                            return {
-                              name: ingredient.name,
-                              displayText
-                            };
-                          });
-                          
-                          // Now enhance the instruction text by appending quantities
-                          ingredientInfos.forEach(info => {
-                            const nameRegex = new RegExp(`\\b${info.name}\\b`, 'i');
-                            if (nameRegex.test(enhancedText)) {
-                              enhancedText = enhancedText.replace(
-                                nameRegex, 
-                                `${info.name} (${info.displayText})`
-                              );
-                            }
-                          });
-                          
-                          return enhancedText;
-                        })()}
-                      </Text>
                     ) : (
                       // Fall back to plain text
-                      <Text className="text-gray-700 flex-1">{instruction.text}</Text>
+                      <Text className="flex-1 text-gray-700">
+                        {instruction.text}
+                      </Text>
                     )}
                   </View>
                 </View>
