@@ -12,13 +12,56 @@ export const ingredientSchema = z.object({
 
 export type Ingredient = z.infer<typeof ingredientSchema>;
 
+// We're removing the segment approach and using annotations instead
+
+// Define an annotation object for steps
+export const annotationSchema = z.object({
+  // ID of the annotation reference
+  id: z.string(),
+  // Index of the ingredient in the ingredients array (if it's an ingredient)
+  ingredientIndex: z.number().optional(),
+  // How much of the ingredient is used in this step (e.g., 0.5 for half)
+  portionUsed: z.number().optional(),
+  // Optional custom text (e.g., "to taste", "for garnish")
+  customText: z.string().optional(),
+  // Optional alternate display name
+  displayName: z.string().optional(),
+  // Optional free-form note text
+  note: z.string().optional()
+});
+
+export type Annotation = z.infer<typeof annotationSchema>;
+
+// Define an instruction step with ingredients used
+export const instructionStepSchema = z.object({
+  // The full instruction text
+  text: z.string(),
+  // Annotated text field with markdown links for references
+  annotatedText: z.string().optional(),
+  // Optional array of ingredients used in this step with their quantities (for backward compatibility)
+  ingredientsUsed: z.array(
+    z.object({
+      // Index of the ingredient in the ingredients array
+      ingredientIndex: z.number(),
+      // How much of the ingredient is used in this step (e.g., 0.5 for half)
+      portionUsed: z.number().optional(),
+      // Optional custom text (e.g., "half the cheese")
+      customText: z.string().optional(),
+    })
+  ).optional(),
+  // Annotations object mapping annotation ids to annotation details
+  annotations: z.record(z.string(), annotationSchema).optional()
+});
+
+export type InstructionStep = z.infer<typeof instructionStepSchema>;
+
 // Define the Recipe type
 export const recipeSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
   ingredients: z.array(ingredientSchema),
-  instructions: z.array(z.string()),
+  instructions: z.array(instructionStepSchema),
   prepTime: z.number(),
   cookTime: z.number(),
   imageUrl: z.string().optional(),
@@ -44,14 +87,141 @@ const mockRecipes: Recipe[] = [
       { name: "Salt", quantity: 1, unit: "to taste" },
     ],
     instructions: [
-      "Bring a large pot of salted water to boil and cook spaghetti according to package instructions.",
-      "In a large pan, cook the pancetta until crispy.",
-      "In a bowl, whisk together eggs, Pecorino Romano, and black pepper.",
-      "Drain pasta, reserving some cooking water.",
-      "Working quickly, add hot pasta to the pan with pancetta, remove from heat.",
-      "Add egg mixture, tossing continuously until creamy.",
-      "Add reserved pasta water if needed to reach desired consistency.",
-      "Serve immediately with extra cheese and black pepper.",
+      {
+        text: "Bring a large pot of salted water to boil and cook spaghetti according to package instructions.",
+        annotatedText: "Bring a large pot of [salted water](#1) to boil and cook [spaghetti](#2) according to package instructions.",
+        ingredientsUsed: [
+          { ingredientIndex: 0, portionUsed: 1 }, // spaghetti
+          { ingredientIndex: 6, customText: "to taste" } // salt
+        ],
+        annotations: {
+          "1": {
+            id: "1",
+            ingredientIndex: 6,
+            customText: "to taste",
+            displayName: "salted water"
+          },
+          "2": {
+            id: "2",
+            ingredientIndex: 0,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "In a large pan, cook the pancetta until crispy.",
+        annotatedText: "In a large pan, cook the [pancetta](#3) until crispy.",
+        ingredientsUsed: [
+          { ingredientIndex: 1, portionUsed: 1 } // pancetta
+        ],
+        annotations: {
+          "3": {
+            id: "3",
+            ingredientIndex: 1,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "In a bowl, whisk together eggs, Pecorino Romano, and black pepper.",
+        annotatedText: "In a bowl, whisk together [eggs](#4), [Pecorino Romano](#5), and [black pepper](#6).",
+        ingredientsUsed: [
+          { ingredientIndex: 2, portionUsed: 1 }, // eggs
+          { ingredientIndex: 3, portionUsed: 0.75 }, // Pecorino (save some for garnish)
+          { ingredientIndex: 5, customText: "to taste" } // black pepper
+        ],
+        annotations: {
+          "4": {
+            id: "4",
+            ingredientIndex: 2,
+            portionUsed: 1
+          },
+          "5": {
+            id: "5",
+            ingredientIndex: 3,
+            portionUsed: 0.75,
+            note: "Save the rest for garnish"
+          },
+          "6": {
+            id: "6",
+            ingredientIndex: 5,
+            customText: "to taste"
+          }
+        }
+      },
+      {
+        text: "Drain pasta, reserving some cooking water.",
+        annotatedText: "Drain [pasta](#7), reserving some cooking water.",
+        annotations: {
+          "7": {
+            id: "7",
+            ingredientIndex: 0,
+            note: "Reserve some cooking water"
+          }
+        }
+      },
+      {
+        text: "Working quickly, add hot pasta to the pan with pancetta, remove from heat.",
+        annotatedText: "Working quickly, add hot [pasta](#8) to the pan with [pancetta](#9), remove from heat.",
+        annotations: {
+          "8": {
+            id: "8",
+            ingredientIndex: 0,
+            note: "Should still be hot"
+          },
+          "9": {
+            id: "9",
+            ingredientIndex: 1
+          }
+        }
+      },
+      {
+        text: "Add egg mixture, tossing continuously until creamy.",
+        annotatedText: "Add [egg mixture](#10), tossing continuously until creamy.",
+        annotations: {
+          "10": {
+            id: "10",
+            note: "The mixture should be at room temperature"
+          }
+        }
+      },
+      {
+        text: "Add reserved pasta water if needed to reach desired consistency.",
+        annotatedText: "Add reserved [pasta water](#11) if needed to reach desired consistency.",
+        annotations: {
+          "11": {
+            id: "11",
+            note: "The starchy water helps create a silky sauce"
+          }
+        }
+      },
+      {
+        text: "Serve immediately with extra cheese and black pepper.",
+        annotatedText: "Serve immediately with extra [cheese](#12) and [Parmesan](#13) and [black pepper](#14).",
+        ingredientsUsed: [
+          { ingredientIndex: 3, portionUsed: 0.25 }, // Pecorino (remaining)
+          { ingredientIndex: 4, portionUsed: 1 }, // Parmesan
+          { ingredientIndex: 5, customText: "to taste" } // black pepper
+        ],
+        annotations: {
+          "12": {
+            id: "12",
+            ingredientIndex: 3,
+            portionUsed: 0.25,
+            displayName: "cheese"
+          },
+          "13": {
+            id: "13",
+            ingredientIndex: 4,
+            portionUsed: 1
+          },
+          "14": {
+            id: "14",
+            ingredientIndex: 5,
+            customText: "to taste"
+          }
+        }
+      }
     ],
     prepTime: 10,
     cookTime: 15,
@@ -80,14 +250,168 @@ const mockRecipes: Recipe[] = [
       { name: "fresh cilantro", quantity: 1, unit: "for garnish" },
     ],
     instructions: [
-      "Marinate chicken in yogurt, lemon juice, and half the spices for at least 1 hour.",
-      "Grill or bake chicken until cooked through.",
-      "In a large pot, sauté onions until soft, then add garlic and ginger.",
-      "Add remaining spices and cook until fragrant.",
-      "Add diced tomatoes and simmer for 15 minutes.",
-      "Blend sauce until smooth, then return to pot.",
-      "Add grilled chicken and cream, simmer for 10 minutes.",
-      "Garnish with cilantro and serve with rice or naan.",
+      {
+        text: "Marinate chicken in yogurt, lemon juice, and half the spices for at least 1 hour.",
+        annotatedText: "Marinate [chicken](#15) in [yogurt](#16), [lemon juice](#17), and half the spices ([cumin](#18), [coriander](#19), [paprika](#20), [turmeric](#21), and [garam masala](#22)) for at least 1 hour.",
+        ingredientsUsed: [
+          { ingredientIndex: 0, portionUsed: 1 }, // chicken
+          { ingredientIndex: 1, portionUsed: 1 }, // yogurt
+          { ingredientIndex: 2, portionUsed: 1 }, // lemon juice
+          { ingredientIndex: 3, portionUsed: 0.5 }, // cumin
+          { ingredientIndex: 4, portionUsed: 0.5 }, // coriander
+          { ingredientIndex: 5, portionUsed: 0.5 }, // paprika
+          { ingredientIndex: 6, portionUsed: 0.5 }, // turmeric
+          { ingredientIndex: 7, portionUsed: 0.5 } // garam masala
+        ],
+        annotations: {
+          "15": {
+            id: "15",
+            ingredientIndex: 0,
+            portionUsed: 1
+          },
+          "16": {
+            id: "16",
+            ingredientIndex: 1,
+            portionUsed: 1
+          },
+          "17": {
+            id: "17",
+            ingredientIndex: 2,
+            portionUsed: 1
+          },
+          "18": {
+            id: "18",
+            ingredientIndex: 3,
+            portionUsed: 0.5
+          },
+          "19": {
+            id: "19",
+            ingredientIndex: 4,
+            portionUsed: 0.5
+          },
+          "20": {
+            id: "20",
+            ingredientIndex: 5,
+            portionUsed: 0.5
+          },
+          "21": {
+            id: "21",
+            ingredientIndex: 6,
+            portionUsed: 0.5
+          },
+          "22": {
+            id: "22",
+            ingredientIndex: 7,
+            portionUsed: 0.5
+          }
+        }
+      },
+      {
+        text: "Grill or bake chicken until cooked through.",
+        annotatedText: "Grill or bake [chicken](#23) until cooked through.",
+        annotations: {
+          "23": {
+            id: "23", 
+            ingredientIndex: 0,
+            note: "Cook until internal temperature reaches 165°F or 74°C"
+          }
+        }
+      },
+      {
+        text: "In a large pot, sauté onions until soft, then add garlic and ginger.",
+        annotatedText: "In a large pot, sauté [onions](#24) until soft, then add [garlic](#25) and [ginger](#26).",
+        ingredientsUsed: [
+          { ingredientIndex: 8, portionUsed: 1 }, // onions
+          { ingredientIndex: 9, portionUsed: 1 }, // garlic
+          { ingredientIndex: 10, portionUsed: 1 } // ginger
+        ],
+        annotations: {
+          "24": {
+            id: "24",
+            ingredientIndex: 8,
+            portionUsed: 1
+          },
+          "25": {
+            id: "25",
+            ingredientIndex: 9,
+            portionUsed: 1
+          },
+          "26": {
+            id: "26",
+            ingredientIndex: 10,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Add remaining spices and cook until fragrant.",
+        annotatedText: "Add remaining [spices](#27) and cook until fragrant.",
+        ingredientsUsed: [
+          { ingredientIndex: 3, portionUsed: 0.5 }, // cumin
+          { ingredientIndex: 4, portionUsed: 0.5 }, // coriander
+          { ingredientIndex: 5, portionUsed: 0.5 }, // paprika
+          { ingredientIndex: 6, portionUsed: 0.5 }, // turmeric
+          { ingredientIndex: 7, portionUsed: 0.5 } // garam masala
+        ],
+        annotations: {
+          "27": {
+            id: "27",
+            note: "The remaining half of the spices from step 1"
+          }
+        }
+      },
+      {
+        text: "Add diced tomatoes and simmer for 15 minutes.",
+        annotatedText: "Add [diced tomatoes](#28) and simmer for 15 minutes.",
+        ingredientsUsed: [
+          { ingredientIndex: 11, portionUsed: 1 } // diced tomatoes
+        ],
+        annotations: {
+          "28": {
+            id: "28",
+            ingredientIndex: 11,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Blend sauce until smooth, then return to pot.",
+        annotatedText: "Blend sauce until smooth, then return to pot."
+      },
+      {
+        text: "Add grilled chicken and cream, simmer for 10 minutes.",
+        annotatedText: "Add grilled [chicken](#29) and [cream](#30), simmer for 10 minutes.",
+        ingredientsUsed: [
+          { ingredientIndex: 12, portionUsed: 1 } // heavy cream
+        ],
+        annotations: {
+          "29": {
+            id: "29",
+            ingredientIndex: 0,
+            displayName: "chicken"
+          },
+          "30": {
+            id: "30",
+            ingredientIndex: 12,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Garnish with cilantro and serve with rice or naan.",
+        annotatedText: "Garnish with [cilantro](#31) and serve with rice or naan.",
+        ingredientsUsed: [
+          { ingredientIndex: 13, portionUsed: 1, customText: "for garnish" } // cilantro
+        ],
+        annotations: {
+          "31": {
+            id: "31",
+            ingredientIndex: 13,
+            portionUsed: 1,
+            customText: "for garnish"
+          }
+        }
+      }
     ],
     prepTime: 20,
     cookTime: 40,
@@ -112,12 +436,115 @@ const mockRecipes: Recipe[] = [
       { name: "Salt and black pepper", quantity: 1, unit: "to taste" },
     ],
     instructions: [
-      "Wash and dry lettuce, tear into bite-sized pieces.",
-      "In a food processor, blend garlic, anchovies, egg yolk, mustard, and lemon juice.",
-      "Slowly add olive oil while processing to emulsify.",
-      "Season with salt and pepper to taste.",
-      "Toss lettuce with dressing, Parmesan cheese, and croutons.",
-      "Serve immediately.",
+      {
+        text: "Wash and dry lettuce, tear into bite-sized pieces.",
+        annotatedText: "Wash and dry [lettuce](#32), tear into bite-sized pieces.",
+        ingredientsUsed: [
+          { ingredientIndex: 0, portionUsed: 1 } // lettuce
+        ],
+        annotations: {
+          "32": {
+            id: "32",
+            ingredientIndex: 0,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "In a food processor, blend garlic, anchovies, egg yolk, mustard, and lemon juice.",
+        annotatedText: "In a food processor, blend [garlic](#33), [anchovies](#34), [egg yolk](#35), [mustard](#36), and [lemon juice](#37).",
+        ingredientsUsed: [
+          { ingredientIndex: 3, portionUsed: 1 }, // garlic
+          { ingredientIndex: 4, portionUsed: 1 }, // anchovies
+          { ingredientIndex: 5, portionUsed: 1 }, // egg yolk
+          { ingredientIndex: 6, portionUsed: 1 }, // mustard
+          { ingredientIndex: 7, portionUsed: 1 }  // lemon juice
+        ],
+        annotations: {
+          "33": {
+            id: "33",
+            ingredientIndex: 3,
+            portionUsed: 1
+          },
+          "34": {
+            id: "34",
+            ingredientIndex: 4,
+            portionUsed: 1
+          },
+          "35": {
+            id: "35",
+            ingredientIndex: 5,
+            portionUsed: 1
+          },
+          "36": {
+            id: "36",
+            ingredientIndex: 6,
+            portionUsed: 1
+          },
+          "37": {
+            id: "37",
+            ingredientIndex: 7,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Slowly add olive oil while processing to emulsify.",
+        annotatedText: "Slowly add [olive oil](#38) while processing to emulsify.",
+        ingredientsUsed: [
+          { ingredientIndex: 8, portionUsed: 1 } // olive oil
+        ],
+        annotations: {
+          "38": {
+            id: "38",
+            ingredientIndex: 8,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Season with salt and pepper to taste.",
+        annotatedText: "Season with [salt and pepper](#39) to taste.",
+        ingredientsUsed: [
+          { ingredientIndex: 9, customText: "to taste" } // salt and pepper
+        ],
+        annotations: {
+          "39": {
+            id: "39",
+            ingredientIndex: 9,
+            customText: "to taste"
+          }
+        }
+      },
+      {
+        text: "Toss lettuce with dressing, Parmesan cheese, and croutons.",
+        annotatedText: "Toss [lettuce](#40) with dressing, [Parmesan cheese](#41), and [croutons](#42).",
+        ingredientsUsed: [
+          { ingredientIndex: 1, portionUsed: 1 }, // croutons
+          { ingredientIndex: 2, portionUsed: 1 }  // Parmesan
+        ],
+        annotations: {
+          "40": {
+            id: "40",
+            ingredientIndex: 0,
+            displayName: "lettuce"
+          },
+          "41": {
+            id: "41",
+            ingredientIndex: 2,
+            portionUsed: 1
+          },
+          "42": {
+            id: "42",
+            ingredientIndex: 1,
+            portionUsed: 1
+          }
+        }
+      },
+      {
+        text: "Serve immediately.",
+        annotatedText: "Serve immediately."
+      }
     ],
     prepTime: 15,
     cookTime: 0,
