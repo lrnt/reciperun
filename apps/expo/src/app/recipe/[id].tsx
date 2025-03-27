@@ -13,6 +13,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
+import type { Annotation } from "@reciperun/trpc/router/recipes";
+
 import { trpc } from "~/utils/api";
 
 // Define types to match what's in the router
@@ -20,14 +22,6 @@ interface Ingredient {
   name: string;
   quantity?: number;
   unit?: string;
-  note?: string;
-}
-
-interface Annotation {
-  ingredientIndex?: number;
-  portionUsed?: number;
-  customText?: string;
-  displayName?: string;
   note?: string;
 }
 
@@ -72,11 +66,7 @@ const renderAnnotatedText = (
     // Process the link based on the annotation index
     const linkIndex = linkIndexStr ? parseInt(linkIndexStr, 10) : NaN;
 
-    if (
-      isNaN(linkIndex) ||
-      linkIndex < 0 ||
-      linkIndex >= annotations.length
-    ) {
+    if (isNaN(linkIndex) || linkIndex < 0 || linkIndex >= annotations.length) {
       // Invalid index, just render the link text
       parts.push(
         <Text key={`link-${currentIndex}`} className="text-gray-700">
@@ -101,9 +91,6 @@ const renderAnnotatedText = (
         let quantityText = "";
         if (ingredient === undefined) {
           quantityText = "unknown";
-        } else if (annotation.customText) {
-          // Use custom text if provided
-          quantityText = annotation.customText;
         } else if (ingredient.note) {
           // Use ingredient note if available
           quantityText = ingredient.note;
@@ -338,22 +325,22 @@ export default function RecipeDetailScreen() {
 
             {recipe.ingredients.map((ingredient, index) => {
               let quantityText = "";
-              
+
               if (ingredient.note) {
                 // If there's a note like "to taste" or "for garnish", use that
                 quantityText = ingredient.note;
               } else if (ingredient.quantity !== undefined) {
                 // Calculate scaled quantity when it exists
                 const scaledQuantity = ingredient.quantity * servingsMultiplier;
-                
+
                 // Format quantity - round to 2 decimal places and remove trailing zeros
                 const formattedQuantity = parseFloat(
                   scaledQuantity.toFixed(2),
                 ).toString();
-                
+
                 // Combine with unit if available
-                quantityText = ingredient.unit 
-                  ? `${formattedQuantity} ${ingredient.unit}` 
+                quantityText = ingredient.unit
+                  ? `${formattedQuantity} ${ingredient.unit}`
                   : formattedQuantity;
               }
 
