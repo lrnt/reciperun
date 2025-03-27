@@ -54,7 +54,62 @@ export const annotationSchema = z.object({
 export type Annotation = z.infer<typeof annotationSchema>;
 
 // Define an instruction step with annotations
-export const instructionStepSchema = z
+
+const checkAnnotationReferences = (data: InstructionStep, ctx: z.RefinementCtx) => {
+  // If no annotatedText, skip validation
+  if (!data.annotatedText) return;
+
+  // If annotatedText exists but no annotations, it's invalid
+  if (!data.annotations || data.annotations.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "AnnotatedText exists but no annotations array was provided",
+      path: ["annotations"]
+    });
+    return z.NEVER;
+  }
+
+  // Extract all reference indices from annotatedText using regex
+  const linkPattern = /\[.*?\]\(#(\d+)\)/g;
+  const annotatedText = data.annotatedText;
+  const matches = [...annotatedText.matchAll(linkPattern)];
+
+  // If no references found but annotations exist, that's a mismatch
+  if (matches.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Annotations exist but no references found in annotatedText",
+      path: ["annotatedText"]
+    });
+    return z.NEVER;
+  }
+
+  // Check each reference individually
+  matches.forEach((match) => {
+    const refIndex = parseInt(match[1] ?? "0");
+    
+    // Check if index is valid (non-negative)
+    if (refIndex < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid annotation reference: negative index #${refIndex} in "${match[0]}"`,
+        path: ["annotatedText"]
+      });
+    }
+    // Check if reference has a corresponding annotation
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (refIndex >= data.annotations!.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        message: `Invalid annotation reference: index #${refIndex} exceeds annotations array length (${data.annotations!.length})`,
+        path: ["annotatedText"]
+      });
+    }
+  });
+};
+
+export const instructionStepSchemaWithoutCheck = z
   .object({
     text: z.string().describe("Plain text instruction without any annotations"),
     annotatedText: z
@@ -70,102 +125,72 @@ export const instructionStepSchema = z
         "Array of annotation objects containing metadata about ingredients mentioned in annotatedText. In the annotatedText, #0 refers to annotations[0], #1 to annotations[1], etc. Each annotation typically contains an ingredientIndex pointing to the actual ingredient in the ingredients array.",
       ),
   })
-  .refine(
-    (data) => {
-      // If no annotatedText, skip validation
-      if (!data.annotatedText) return true;
-
-      // If annotatedText exists but no annotations, it's invalid
-      if (!data.annotations || data.annotations.length === 0) return false;
-
-      // At this point we know data.annotations exists and has elements
-
-      // Extract all reference indices from annotatedText using regex
-      const linkPattern = /\[.*?\]\(#(\d+)\)/g;
-      const annotatedText = data.annotatedText || "";
-      const matches = [...annotatedText.matchAll(linkPattern)];
-
-      // If no references found but annotations exist, that's a mismatch
-      if (matches.length === 0) return false;
-
-      const referencedIndices = matches.map((match) =>
-        parseInt(match[1] ?? "0"),
-      );
-
-      // Check if all indices are valid (non-negative)
-      if (referencedIndices.some((idx) => idx < 0)) return false;
-
-      // Check if all referenced indices have corresponding annotations
-      const maxIndex = Math.max(...referencedIndices);
-
-      // Since we checked data.annotations earlier, we can safely assert it's defined here
-      const annotationsArray = data.annotations;
-      if (maxIndex >= annotationsArray.length) return false;
-
-      // We know annotations exists and has elements at this point
-      return referencedIndices.every((idx) => idx < annotationsArray.length);
-    },
-    {
-      message:
-        "Each reference in annotatedText must have a corresponding annotation in the annotations array",
-    },
-  );
-
-export type InstructionStep = z.infer<typeof instructionStepSchema>;
+export type InstructionStep = z.infer<typeof instructionStepSchemaWithoutCheck>;
+export const instructionStepSchema = instructionStepSchemaWithoutCheck.superRefine(checkAnnotationReferences);
 
 // Define the Recipe type
-export const recipeSchema = z
-  .object({
-    id: z.string().describe("Unique identifier for the recipe"),
-    title: z.string().describe("Name of the recipe"),
-    description: z
-      .string()
-      .describe("Brief summary or introduction to the recipe"),
-    ingredients: z
-      .array(ingredientSchema)
-      .describe("List of all ingredients needed for the recipe"),
-    instructions: z
-      .array(instructionStepSchema)
-      .describe(
-        "Step-by-step cooking instructions with ingredient annotations",
-      ),
-    prepTime: z.number().describe("Preparation time in minutes"),
-    cookTime: z.number().describe("Cooking time in minutes"),
-    imageUrl: z
-      .string()
-      .optional()
-      .describe("URL to an image of the completed dish"),
-  })
-  .refine(
-    (data) => {
-      // Validate that all ingredient indices referenced in annotations are valid
-      const ingredientsLength = data.ingredients.length;
+const checkAnnotationIngredientIndices = (
+  recipe: RecipeContent,
+  ctx: z.RefinementCtx,
+) => {
+  recipe.instructions.forEach((instruction, instructionIndex) => {
+    if (!instruction.annotations) return;
 
-      for (const instruction of data.instructions) {
-        if (!instruction.annotations) continue;
+    instruction.annotations.forEach((annotation, annotationIndex) => {
+      const ingredientIndex = annotation.ingredientIndex;
 
-        for (const annotation of instruction.annotations) {
-          // Skip annotations that don't reference ingredients
-          if (annotation.ingredientIndex === undefined) continue;
+      if (ingredientIndex === undefined) return;
 
-          // Check if ingredient index is valid
-          if (
-            annotation.ingredientIndex < 0 ||
-            annotation.ingredientIndex >= ingredientsLength
-          ) {
-            return false;
-          }
-        }
+      if (ingredientIndex < 0 || ingredientIndex >= recipe.ingredients.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid ingredient index: ${ingredientIndex} is out of bounds (0-${recipe.ingredients.length - 1})`,
+          path: [
+            `instructions`,
+            instructionIndex,
+            `annotations`,
+            annotationIndex,
+            `ingredientIndex`,
+          ],
+        });
       }
+    });
+  });
+};
 
-      return true;
-    },
-    {
-      message:
-        "All ingredient indices referenced in annotations must be valid indices in the ingredients array",
-    },
-  );
-export type Recipe = z.infer<typeof recipeSchema>;
+// Recipe content
+const recipeContentSchemaWithoutChecks = z.object({
+  id: z.string().describe("Unique identifier for the recipe"),
+  title: z.string().describe("Name of the recipe"),
+  description: z
+    .string()
+    .describe("Brief summary or introduction to the recipe"),
+  ingredients: z
+    .array(ingredientSchema)
+    .describe("List of all ingredients needed for the recipe"),
+  instructions: z
+    .array(instructionStepSchema)
+    .describe("Step-by-step cooking instructions with ingredient annotations"),
+  prepTime: z.number().describe("Preparation time in minutes"),
+  cookTime: z.number().describe("Cooking time in minutes"),
+  imageUrl: z
+    .string()
+    .optional()
+    .describe("URL to an image of the completed dish"),
+});
+export type RecipeContent = z.infer<typeof recipeContentSchemaWithoutChecks>;
+export const recipeContentSchema = recipeContentSchemaWithoutChecks.superRefine(
+  checkAnnotationIngredientIndices,
+);
+
+// Recipe with id
+const recipeSchemaWithoutChecks = recipeContentSchemaWithoutChecks.extend({
+  id: z.string().describe("Unique identifier for the recipe"),
+});
+export type Recipe = z.infer<typeof recipeSchemaWithoutChecks>;
+export const recipeSchema = recipeSchemaWithoutChecks.superRefine(
+  checkAnnotationIngredientIndices,
+);
 
 // Mock data
 const mockRecipes: Recipe[] = [
