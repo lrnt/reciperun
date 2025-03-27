@@ -1,5 +1,5 @@
 {
-  "extends": ["@reciperun/tsconfig/base.json"],
+  "extends": ["expo/tsconfig.base", "@reciperun/tsconfig/base.json"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
