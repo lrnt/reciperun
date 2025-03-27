@@ -25,7 +25,9 @@ export const ingredientSchema = z.object({
 
 export type Ingredient = z.infer<typeof ingredientSchema>;
 
-// The app uses an annotation system to link ingredients to specific steps in the recipe instructions
+// The app uses a two-level annotation system:
+// 1. In the instructionStep.annotatedText, markdown links like [ingredient](#0) refer to indices in the annotations array
+// 2. Each annotation in the annotations array then contains metadata, including an ingredientIndex that references the actual ingredient in the ingredients array
 
 // Define an annotation object for steps
 export const annotationSchema = z.object({
@@ -33,7 +35,7 @@ export const annotationSchema = z.object({
     .number()
     .optional()
     .describe(
-      "Index of the ingredient in the ingredients array (zero-based) that this annotation references",
+      "Index of the ingredient in the recipe's ingredients array (zero-based). This creates the second level of the annotation system, connecting the annotation to the actual ingredient.",
     ),
   portionUsed: z
     .number()
@@ -59,13 +61,13 @@ export const instructionStepSchema = z
       .string()
       .optional()
       .describe(
-        "Instruction text with markdown-style links to reference ingredients in the annotations array, the link should be the index of the annotation in the annotations array (e.g., 'Mix [flour](#0) and [sugar](#1)')",
+        "Instruction text with markdown-style links that reference positions in the annotations array. For example, in 'Mix [flour](#0) and [sugar](#1)', #0 refers to annotations[0] and #1 refers to annotations[1]. The ingredient names in brackets are displayed to the user, while the numbers in parentheses link to the metadata in the annotations array.",
       ),
     annotations: z
       .array(annotationSchema)
       .optional()
       .describe(
-        "Array of annotations where each index corresponds to the numbered link in annotatedText",
+        "Array of annotation objects containing metadata about ingredients mentioned in annotatedText. In the annotatedText, #0 refers to annotations[0], #1 to annotations[1], etc. Each annotation typically contains an ingredientIndex pointing to the actual ingredient in the ingredients array.",
       ),
   })
   .refine(
