@@ -30,6 +30,7 @@ export default function RootLayout() {
           },
           // Add consistent card styling
           animation: "slide_from_right",
+          headerShown: false,
         }}
       />
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
