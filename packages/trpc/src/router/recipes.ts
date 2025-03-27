@@ -52,48 +52,123 @@ export const annotationSchema = z.object({
 export type Annotation = z.infer<typeof annotationSchema>;
 
 // Define an instruction step with annotations
-export const instructionStepSchema = z.object({
-  text: z.string().describe("Plain text instruction without any annotations"),
-  annotatedText: z
-    .string()
-    .optional()
-    .describe(
-      "Instruction text with markdown-style links to reference ingredients (e.g., 'Mix [flour](#0) and [sugar](#1)')",
-    ),
-  annotations: z
-    .array(annotationSchema)
-    .optional()
-    .describe(
-      "Array of annotations where each index corresponds to the numbered link in annotatedText",
-    ),
-});
+export const instructionStepSchema = z
+  .object({
+    text: z.string().describe("Plain text instruction without any annotations"),
+    annotatedText: z
+      .string()
+      .optional()
+      .describe(
+        "Instruction text with markdown-style links to reference ingredients (e.g., 'Mix [flour](#0) and [sugar](#1)')",
+      ),
+    annotations: z
+      .array(annotationSchema)
+      .optional()
+      .describe(
+        "Array of annotations where each index corresponds to the numbered link in annotatedText",
+      ),
+  })
+  .refine(
+    (data) => {
+      // If no annotatedText, skip validation
+      if (!data.annotatedText) return true;
+
+      // If annotatedText exists but no annotations, it's invalid
+      if (!data.annotations || data.annotations.length === 0) return false;
+
+      // At this point we know data.annotations exists and has elements
+
+      // Extract all reference indices from annotatedText using regex
+      const linkPattern = /\[.*?\]\(#(\d+)\)/g;
+      const annotatedText = data.annotatedText || "";
+      const matches = [...annotatedText.matchAll(linkPattern)];
+
+      // If no references found but annotations exist, that's a mismatch
+      if (matches.length === 0) return false;
+
+      const referencedIndices = matches.map((match) =>
+        parseInt(match[1] ?? "0"),
+      );
+
+      // Check if all indices are valid (non-negative)
+      if (referencedIndices.some((idx) => idx < 0)) return false;
+
+      // Check if all referenced indices have corresponding annotations
+      const maxIndex = Math.max(...referencedIndices);
+
+      // Since we checked data.annotations earlier, we can safely assert it's defined here
+      const annotationsArray = data.annotations;
+      if (maxIndex >= annotationsArray.length) return false;
+
+      // We know annotations exists and has elements at this point
+      return referencedIndices.every((idx) => idx < annotationsArray.length);
+    },
+    {
+      message:
+        "Each reference in annotatedText must have a corresponding annotation in the annotations array",
+    },
+  );
 
 export type InstructionStep = z.infer<typeof instructionStepSchema>;
 
 // Define the Recipe type
-export const recipeSchema = z.object({
-  title: z.string().describe("Name of the recipe"),
-  description: z
-    .string()
-    .describe("Brief summary or introduction to the recipe"),
-  ingredients: z
-    .array(ingredientSchema)
-    .describe("List of all ingredients needed for the recipe"),
-  instructions: z
-    .array(instructionStepSchema)
-    .describe("Step-by-step cooking instructions with ingredient annotations"),
-  prepTime: z.number().describe("Preparation time in minutes"),
-  cookTime: z.number().describe("Cooking time in minutes"),
-  imageUrl: z
-    .string()
-    .optional()
-    .describe("URL to an image of the completed dish"),
-});
+export const recipeSchema = z
+  .object({
+    id: z.string().describe("Unique identifier for the recipe"),
+    title: z.string().describe("Name of the recipe"),
+    description: z
+      .string()
+      .describe("Brief summary or introduction to the recipe"),
+    ingredients: z
+      .array(ingredientSchema)
+      .describe("List of all ingredients needed for the recipe"),
+    instructions: z
+      .array(instructionStepSchema)
+      .describe(
+        "Step-by-step cooking instructions with ingredient annotations",
+      ),
+    prepTime: z.number().describe("Preparation time in minutes"),
+    cookTime: z.number().describe("Cooking time in minutes"),
+    imageUrl: z
+      .string()
+      .optional()
+      .describe("URL to an image of the completed dish"),
+  })
+  .refine(
+    (data) => {
+      // Validate that all ingredient indices referenced in annotations are valid
+      const ingredientsLength = data.ingredients.length;
+
+      for (const instruction of data.instructions) {
+        if (!instruction.annotations) continue;
+
+        for (const annotation of instruction.annotations) {
+          // Skip annotations that don't reference ingredients
+          if (annotation.ingredientIndex === undefined) continue;
+
+          // Check if ingredient index is valid
+          if (
+            annotation.ingredientIndex < 0 ||
+            annotation.ingredientIndex >= ingredientsLength
+          ) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    },
+    {
+      message:
+        "All ingredient indices referenced in annotations must be valid indices in the ingredients array",
+    },
+  );
 export type Recipe = z.infer<typeof recipeSchema>;
 
 // Mock data
 const mockRecipes: Recipe[] = [
   {
+    id: "1",
     title: "Spaghetti Carbonara",
     description:
       "A classic Italian pasta dish with eggs, cheese, and pancetta.",
@@ -199,6 +274,7 @@ const mockRecipes: Recipe[] = [
     imageUrl: "https://images.unsplash.com/photo-1546549032-9571cd6b27df",
   },
   {
+    id: "2",
     title: "Chicken Tikka Masala",
     description:
       "A flavorful Indian curry dish with tender chicken in a creamy tomato sauce.",
@@ -341,6 +417,7 @@ const mockRecipes: Recipe[] = [
     imageUrl: "https://images.unsplash.com/photo-1565557623262-b51c2513a641",
   },
   {
+    id: "3",
     title: "Classic Caesar Salad",
     description:
       "A refreshing salad with romaine lettuce, croutons, and Caesar dressing.",
