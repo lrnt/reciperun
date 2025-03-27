@@ -17,9 +17,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.2",
     "@reciperun/auth": "workspace:*",
     "@reciperun/db": "workspace:*",
     "@trpc/server": "catalog:",
+    "ai": "^4.2.6",
     "superjson": "2.2.2",
     "zod": "catalog:"
   },

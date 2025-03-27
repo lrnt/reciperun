@@ -2,63 +2,98 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod";
 
 import { publicProcedure } from "../trpc";
+import { fetchRecipeFromUrl } from "../utils/scrape";
 
 // Define ingredient type for structured data
 export const ingredientSchema = z.object({
-  name: z.string(),
-  quantity: z.number().optional(),
-  unit: z.string().optional(),
-  note: z.string().optional(), // For descriptive quantities like "to taste" or "for garnish"
+  name: z.string().describe("Name of the ingredient (e.g., 'flour', 'eggs')"),
+  quantity: z
+    .number()
+    .optional()
+    .describe("Numerical amount of the ingredient (e.g., 2, 0.5)"),
+  unit: z
+    .string()
+    .optional()
+    .describe("Unit of measurement (e.g., 'cups', 'g', 'tbsp')"),
+  note: z
+    .string()
+    .optional()
+    .describe(
+      "Additional information about the ingredient (e.g., 'to taste', 'for garnish')",
+    ),
 });
 
 export type Ingredient = z.infer<typeof ingredientSchema>;
 
-// We're removing the segment approach and using annotations instead
+// The app uses an annotation system to link ingredients to specific steps in the recipe instructions
 
 // Define an annotation object for steps
 export const annotationSchema = z.object({
-  // Index of the ingredient in the ingredients array (if it's an ingredient)
-  ingredientIndex: z.number().optional(),
-  // How much of the ingredient is used in this step (e.g., 0.5 for half)
-  portionUsed: z.number().optional(),
-  // Optional free-form note text
-  note: z.string().optional(),
+  ingredientIndex: z
+    .number()
+    .optional()
+    .describe(
+      "Index of the ingredient in the ingredients array (zero-based) that this annotation references",
+    ),
+  portionUsed: z
+    .number()
+    .optional()
+    .describe(
+      "Fraction of the ingredient used in this step (e.g., 0.5 for half, 0.25 for quarter)",
+    ),
+  note: z
+    .string()
+    .optional()
+    .describe(
+      "Additional information about how this ingredient is used in this step",
+    ),
 });
 
 export type Annotation = z.infer<typeof annotationSchema>;
 
 // Define an instruction step with annotations
 export const instructionStepSchema = z.object({
-  // The full instruction text
-  text: z.string(),
-  // Annotated text field with markdown links for references
-  annotatedText: z.string().optional(),
-  // Annotations array where index corresponds to the id in markdown links
-  annotations: z.array(annotationSchema).optional(),
+  text: z.string().describe("Plain text instruction without any annotations"),
+  annotatedText: z
+    .string()
+    .optional()
+    .describe(
+      "Instruction text with markdown-style links to reference ingredients (e.g., 'Mix [flour](#0) and [sugar](#1)')",
+    ),
+  annotations: z
+    .array(annotationSchema)
+    .optional()
+    .describe(
+      "Array of annotations where each index corresponds to the numbered link in annotatedText",
+    ),
 });
 
 export type InstructionStep = z.infer<typeof instructionStepSchema>;
 
 // Define the Recipe type
 export const recipeSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string(),
-  ingredients: z.array(ingredientSchema),
-  instructions: z.array(instructionStepSchema),
-  prepTime: z.number(),
-  cookTime: z.number(),
-  imageUrl: z.string().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  title: z.string().describe("Name of the recipe"),
+  description: z
+    .string()
+    .describe("Brief summary or introduction to the recipe"),
+  ingredients: z
+    .array(ingredientSchema)
+    .describe("List of all ingredients needed for the recipe"),
+  instructions: z
+    .array(instructionStepSchema)
+    .describe("Step-by-step cooking instructions with ingredient annotations"),
+  prepTime: z.number().describe("Preparation time in minutes"),
+  cookTime: z.number().describe("Cooking time in minutes"),
+  imageUrl: z
+    .string()
+    .optional()
+    .describe("URL to an image of the completed dish"),
 });
-
 export type Recipe = z.infer<typeof recipeSchema>;
 
 // Mock data
 const mockRecipes: Recipe[] = [
   {
-    id: "1",
     title: "Spaghetti Carbonara",
     description:
       "A classic Italian pasta dish with eggs, cheese, and pancetta.",
@@ -162,11 +197,8 @@ const mockRecipes: Recipe[] = [
     prepTime: 10,
     cookTime: 15,
     imageUrl: "https://images.unsplash.com/photo-1546549032-9571cd6b27df",
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
   },
   {
-    id: "2",
     title: "Chicken Tikka Masala",
     description:
       "A flavorful Indian curry dish with tender chicken in a creamy tomato sauce.",
@@ -307,11 +339,8 @@ const mockRecipes: Recipe[] = [
     prepTime: 20,
     cookTime: 40,
     imageUrl: "https://images.unsplash.com/photo-1565557623262-b51c2513a641",
-    createdAt: new Date("2024-02-05"),
-    updatedAt: new Date("2024-02-10"),
   },
   {
-    id: "3",
     title: "Classic Caesar Salad",
     description:
       "A refreshing salad with romaine lettuce, croutons, and Caesar dressing.",
@@ -412,8 +441,6 @@ const mockRecipes: Recipe[] = [
     prepTime: 15,
     cookTime: 0,
     imageUrl: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9",
-    createdAt: new Date("2024-01-25"),
-    updatedAt: new Date("2024-01-25"),
   },
 ];
 
@@ -435,86 +462,27 @@ export const recipesRouter = {
       }
       return recipe;
     }),
-    
+
   // Import recipe from URL
   importFromUrl: publicProcedure
     .input(z.object({ url: z.string().url() }))
     .mutation(async ({ input }) => {
-      try {
-        console.log(`Attempting to import recipe from URL: ${input.url}`);
-        
-        // Fetch the webpage content
-        const response = await fetch(input.url);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
-        }
-        
-        const html = await response.text();
-        
-        // Look for JSON-LD data in the page
-        const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-        const matches = [...html.matchAll(jsonLdRegex)];
-        
-        if (matches.length > 0) {
-          console.log("JSON-LD data found:");
-          
-          // Define types for JSON-LD data
-          interface JsonLdEntity {
-            "@type"?: string | string[];
-            "@graph"?: JsonLdEntity[];
-            [key: string]: unknown;
-          }
-          
-          // Process each JSON-LD block
-          for (const match of matches) {
-            try {
-              // Ensure we have valid JSON content
-              const jsonContent = match[1];
-              if (!jsonContent) continue;
-              
-              const jsonData = JSON.parse(jsonContent) as JsonLdEntity;
-              
-              const isRecipe = (entity: JsonLdEntity): boolean => {
-                const entityType = entity["@type"];
-                
-                if (typeof entityType === "string") {
-                  return entityType === "Recipe";
-                }
-                
-                if (Array.isArray(entityType)) {
-                  return entityType.includes("Recipe");
-                }
-                
-                return false;
-              };
-              
-              // Check if it's a recipe
-              if (
-                isRecipe(jsonData) || 
-                (jsonData["@graph"]?.some(item => isRecipe(item)))
-              ) {
-                console.log("Recipe JSON-LD data found:", JSON.stringify(jsonData, null, 2));
-                return { success: true, foundJsonLd: true, url: input.url };
-              } else {
-                console.log("JSON-LD data found but not a recipe:", JSON.stringify(jsonData, null, 2));
-              }
-            } catch (parseError) {
-              console.error("Error parsing JSON-LD:", parseError);
-            }
-          }
-        } else {
-          console.log("No JSON-LD data found on the page");
-        }
-        
-        return { 
-          success: true, 
-          foundJsonLd: matches.length > 0,
-          url: input.url 
+      const result = await fetchRecipeFromUrl(input.url);
+      console.log("Import recipe result:", result);
+
+      // When returning to clients, convert to a more API-friendly format
+      if (result.error) {
+        return {
+          success: false,
+          error: result.error.message,
+          data: null,
         };
-      } catch (error) {
-        console.error("Error importing recipe:", error);
-        throw new Error(`Failed to import recipe: ${error instanceof Error ? error.message : "Unknown error"}`);
+      } else {
+        return {
+          success: true,
+          error: null,
+          data: result.data,
+        };
       }
     }),
 } satisfies TRPCRouterRecord;

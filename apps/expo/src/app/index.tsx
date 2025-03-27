@@ -42,16 +42,16 @@ export default function RecipesScreen() {
       setIsImportModalVisible(false);
       setImportUrl("");
       
-      if (data.foundJsonLd) {
+      if (data.success && data.data) {
         Alert.alert(
           "Success", 
-          "Recipe found and imported successfully! JSON-LD data was found on the page.",
+          "Recipe found and imported successfully!",
           [{ text: "OK" }]
         );
       } else {
         Alert.alert(
           "Import Completed", 
-          "The URL was processed, but no recipe JSON-LD data was found on the page.",
+          `The URL was processed, but ${data.error ?? "no recipe data was found"}`,
           [{ text: "OK" }]
         );
       }
