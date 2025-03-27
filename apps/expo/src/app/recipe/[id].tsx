@@ -13,17 +13,10 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
-import type { Annotation } from "@reciperun/trpc/router/recipes";
+import type { Annotation, Ingredient } from "@reciperun/trpc/router/recipes";
 
 import { trpc } from "~/utils/api";
 
-// Define types to match what's in the router
-interface Ingredient {
-  name: string;
-  quantity?: number;
-  unit?: string;
-  note?: string;
-}
 
 // Function to render annotated text with ingredient references
 const renderAnnotatedText = (
