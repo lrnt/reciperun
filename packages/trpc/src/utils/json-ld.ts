@@ -16,7 +16,7 @@ export interface JsonLdEntity {
 /**
  * Checks if a JSON-LD entity represents a recipe
  */
-export function isRecipe(entity: JsonLdEntity): boolean {
+export function isJsonLdRecipe(entity: JsonLdEntity): boolean {
   const entityType = entity["@type"];
 
   if (typeof entityType === "string") {
@@ -171,7 +171,7 @@ export function extractRecipeFromJsonLd(
   const flattenedEntities = flattenJsonLdEntities(entities);
 
   // Find the first recipe entity
-  const recipeEntity = flattenedEntities.find(isRecipe);
+  const recipeEntity = flattenedEntities.find(isJsonLdRecipe);
 
   if (recipeEntity) {
     console.log(
