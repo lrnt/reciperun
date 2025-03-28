@@ -1,4 +1,6 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+
+import type { Failure, Result, Success } from "./try-catch";
 import { recipeSchema } from "../router/recipes";
 
 /**
@@ -12,42 +14,9 @@ export interface JsonLdEntity {
   [key: string]: unknown;
 }
 
-// Result pattern implementation
-export interface Success<T> {
-  data: T;
-  error: null;
-}
-
-export interface Failure<E> {
-  data: null;
-  error: E;
-}
-
-export type Result<T, E = Error> = Success<T> | Failure<E>;
-
-// Domain-specific data types
-export interface JsonLdData {
-  entities: JsonLdEntity[];
-  url: string;
-}
-
 export interface RecipeData {
   recipe: JsonLdEntity;
   url: string;
-}
-
-/**
- * Wraps a promise in a try/catch and returns a Result
- */
-export async function tryCatch<T, E = Error>(
-  promise: Promise<T>,
-): Promise<Result<T, E>> {
-  try {
-    const data = await promise;
-    return { data, error: null };
-  } catch (error) {
-    return { data: null, error: error as E };
-  }
 }
 
 /**
@@ -88,7 +57,7 @@ export function isRecipe(entity: JsonLdEntity): boolean {
  */
 export async function fetchJsonLdFromUrl(
   url: string,
-): Promise<Result<JsonLdData>> {
+): Promise<Result<JsonLdEntity[]>> {
   try {
     console.log(`Attempting to fetch JSON-LD from URL: ${url}`);
 
@@ -135,10 +104,7 @@ export async function fetchJsonLdFromUrl(
       return failure(new Error("Failed to parse any valid JSON-LD data"));
     }
 
-    return success({
-      entities,
-      url,
-    });
+    return success(entities);
   } catch (error) {
     console.error("Error fetching JSON-LD:", error);
     return failure(
@@ -213,11 +179,8 @@ export async function fetchRecipeFromUrl(url: string) {
     return failure(jsonLdResult.error);
   }
 
-  // We know jsonLdResult.data exists because error is null
-  const { entities } = jsonLdResult.data;
-
   // Step 2: Extract recipe from the JSON-LD data
-  const jsonLdRecipe = extractRecipeFromJsonLd(entities, url);
+  const jsonLdRecipe = extractRecipeFromJsonLd(jsonLdResult.data, url);
 
   if (jsonLdRecipe.error) {
     return failure(jsonLdRecipe.error);
