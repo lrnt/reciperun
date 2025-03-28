@@ -160,7 +160,6 @@ const checkAnnotationIngredientIndices = (
 
 // Recipe content
 const recipeContentSchemaWithoutChecks = z.object({
-  id: z.string().describe("Unique identifier for the recipe"),
   title: z.string().describe("Name of the recipe"),
   description: z
     .string()
