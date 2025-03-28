@@ -10,6 +10,21 @@ export interface Failure<E> {
 
 export type Result<T, E = Error> = Success<T> | Failure<E>;
 
+
+/**
+ * Create a successful Result
+ */
+export function success<T>(data: T): Success<T> {
+  return { data, error: null };
+}
+
+/**
+ * Create a failure Result
+ */
+export function failure<E>(error: E): Failure<E> {
+  return { data: null, error };
+}
+
 /**
  * Wraps a promise in a try/catch and returns a Result
  */

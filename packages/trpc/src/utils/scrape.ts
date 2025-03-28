@@ -1,62 +1,20 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 
-import type { Failure, Result, Success } from "./try-catch";
 import { recipeSchema } from "../router/recipes";
+import { failure, success } from "./try-catch";
+import type { JsonLdEntity } from "./json-ld";
+import {
+  fetchJsonLdFromUrl as fetchJsonLdFromHtml,
+  extractRecipeFromJsonLd,
+} from "./json-ld";
 
 /**
- * Utilities for fetching and processing JSON-LD data
+ * Fetches a recipe from a URL by extracting JSON-LD data
+ * @param url The URL to fetch the recipe from
+ * @returns Result with recipe data or error
  */
-
-// Define types for JSON-LD data
-export interface JsonLdEntity {
-  "@type"?: string | string[];
-  "@graph"?: JsonLdEntity[];
-  [key: string]: unknown;
-}
-
-/**
- * Create a successful Result
- */
-export function success<T>(data: T): Success<T> {
-  return { data, error: null };
-}
-
-/**
- * Create a failure Result
- */
-export function failure<E>(error: E): Failure<E> {
-  return { data: null, error };
-}
-
-/**
- * Checks if a JSON-LD entity represents a recipe
- */
-export function isRecipe(entity: JsonLdEntity): boolean {
-  const entityType = entity["@type"];
-
-  if (typeof entityType === "string") {
-    return entityType === "Recipe";
-  }
-
-  if (Array.isArray(entityType)) {
-    return entityType.includes("Recipe");
-  }
-
-  return false;
-}
-
-/**
- * Fetches JSON-LD data from a URL
- * @param url The URL to fetch JSON-LD data from
- * @returns Result with JSON-LD data or error
- */
-export async function fetchJsonLdFromUrl(
-  url: string,
-): Promise<Result<JsonLdEntity[]>> {
-  try {
-    console.log(`Attempting to fetch JSON-LD from URL: ${url}`);
-
-    // Fetch the webpage content
+export async function fetchRecipeFromUrl(url: string) {
+    // Step 1: Fetch the webpage content
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -67,114 +25,22 @@ export async function fetchJsonLdFromUrl(
 
     const html = await response.text();
 
-    // Look for JSON-LD data in the page
-    const jsonLdRegex =
-      /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-    const matches = [...html.matchAll(jsonLdRegex)];
-
-    if (matches.length === 0) {
-      console.log("No JSON-LD data found on the page");
-      return failure(new Error("No JSON-LD data found on the page"));
-    }
-
-    console.log("JSON-LD data found");
-
-    // Parse all JSON-LD blocks
-    const entities: JsonLdEntity[] = [];
-
-    for (const match of matches) {
-      try {
-        const jsonContent = match[1];
-        if (!jsonContent) continue;
-
-        const jsonData = JSON.parse(jsonContent) as JsonLdEntity;
-        entities.push(jsonData);
-      } catch (parseError) {
-        console.error("Error parsing JSON-LD:", parseError);
-        // Continue with other blocks
-      }
-    }
-
-    if (entities.length === 0) {
-      return failure(new Error("Failed to parse any valid JSON-LD data"));
-    }
-
-    return success(entities);
-  } catch (error) {
-    console.error("Error fetching JSON-LD:", error);
-    return failure(
-      error instanceof Error
-        ? error
-        : new Error("Unknown error fetching JSON-LD"),
-    );
-  }
-}
-
-/**
- * Extracts recipe data from JSON-LD entities
- * @param entities Array of JSON-LD entities to search for recipes
- * @param url The original URL of the page
- * @returns Result with recipe data or error
- */
-export function extractRecipeFromJsonLd(
-  entities: JsonLdEntity[],
-): Result<JsonLdEntity> {
-  if (!entities.length) {
-    return failure(new Error("No JSON-LD entities provided"));
-  }
-
-  // First check for direct recipe types
-  for (const entity of entities) {
-    if (isRecipe(entity)) {
-      console.log(
-        "Recipe JSON-LD data found:",
-        JSON.stringify(entity, null, 2),
-      );
-      return success(entity);
-    }
-  }
-
-  // Then check @graph properties
-  for (const entity of entities) {
-    if (!entity["@graph"] || !Array.isArray(entity["@graph"])) continue;
-
-    for (const graphItem of entity["@graph"]) {
-      if (isRecipe(graphItem)) {
-        console.log(
-          "Recipe JSON-LD data found in @graph:",
-          JSON.stringify(graphItem, null, 2),
-        );
-        return success(graphItem);
-      }
-    }
-  }
-
-  console.log("No recipe found in JSON-LD data");
-  return failure(new Error("No recipe found in JSON-LD data"));
-}
-
-/**
- * Fetches a recipe from a URL by extracting JSON-LD data
- * @param url The URL to fetch the recipe from
- * @returns Result with recipe data or error
- */
-export async function fetchRecipeFromUrl(url: string) {
-  // Step 1: Fetch JSON-LD data from the URL
-  const jsonLdResult = await fetchJsonLdFromUrl(url);
+  // Step 2: Fetch JSON-LD data from the URL
+  const jsonLdResult =  fetchJsonLdFromHtml(html);
 
   // If fetching failed, return early with the error
   if (jsonLdResult.error) {
     return failure(jsonLdResult.error);
   }
 
-  // Step 2: Extract recipe from the JSON-LD data
+  // Step 3: Extract recipe from the JSON-LD data
   const jsonLdRecipe = extractRecipeFromJsonLd(jsonLdResult.data);
 
   if (jsonLdRecipe.error) {
     return failure(jsonLdRecipe.error);
   }
 
-  // Step 3: Normalize the JSON-LD recipe to our application's schema
+  // Step 4: Normalize the JSON-LD recipe to our application's schema
   const normalizedRecipe = await normalizeJsonLdRecipe(jsonLdRecipe.data, url);
 
   if (normalizedRecipe.error) {
