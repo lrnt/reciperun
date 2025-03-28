@@ -17,7 +17,6 @@ import type { Annotation, Ingredient } from "@reciperun/trpc/router/recipes";
 
 import { trpc } from "~/utils/api";
 
-
 // Function to render annotated text with ingredient references
 const renderAnnotatedText = (
   annotatedText: string,

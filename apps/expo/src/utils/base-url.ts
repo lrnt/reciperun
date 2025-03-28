@@ -17,7 +17,7 @@ export const getBaseUrl = () => {
   const localhost = debuggerHost?.split(":")[0];
 
   if (!localhost) {
-    return "http://reciperun.vercel.app"
+    return "http://reciperun.vercel.app";
   }
   return `http://${localhost}:3000`;
 };

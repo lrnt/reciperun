@@ -12,7 +12,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 // It wraps your pages with the providers they need
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <Stack

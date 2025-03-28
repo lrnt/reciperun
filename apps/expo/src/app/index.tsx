@@ -26,7 +26,7 @@ export default function RecipesScreen() {
   const router = useRouter();
   const [isImportModalVisible, setIsImportModalVisible] = useState(false);
   const [importUrl, setImportUrl] = useState("");
-  
+
   // Get the recipes query
   const {
     data: recipes,
@@ -35,37 +35,36 @@ export default function RecipesScreen() {
     refetch,
     isRefetching,
   } = useQuery(trpc.recipes.getAll.queryOptions());
-  
-  // Set up the import recipe mutation
-  const importMutation = useMutation(trpc.recipes.importFromUrl.mutationOptions({
-    onSuccess: (data) => {
-      setIsImportModalVisible(false);
-      setImportUrl("");
-      
-      if (data.success && data.data) {
-        Alert.alert(
-          "Success", 
-          "Recipe found and imported successfully!",
-          [{ text: "OK" }]
-        );
-      } else {
-        Alert.alert(
-          "Import Completed", 
-          `The URL was processed, but ${data.error ?? "no recipe data was found"}`,
-          [{ text: "OK" }]
-        );
-      }
-    },
-    onError: (error) => {
-      Alert.alert(
-        "Import Failed", 
-        `Failed to import recipe: ${error.message}`,
-        [{ text: "OK" }]
-      );
-    }
 
-  })); 
-  
+  // Set up the import recipe mutation
+  const importMutation = useMutation(
+    trpc.recipes.importFromUrl.mutationOptions({
+      onSuccess: (data) => {
+        setIsImportModalVisible(false);
+        setImportUrl("");
+
+        if (data.success && data.data) {
+          Alert.alert("Success", "Recipe found and imported successfully!", [
+            { text: "OK" },
+          ]);
+        } else {
+          Alert.alert(
+            "Import Completed",
+            `The URL was processed, but ${data.error ?? "no recipe data was found"}`,
+            [{ text: "OK" }],
+          );
+        }
+      },
+      onError: (error) => {
+        Alert.alert(
+          "Import Failed",
+          `Failed to import recipe: ${error.message}`,
+          [{ text: "OK" }],
+        );
+      },
+    }),
+  );
+
   // Handle recipe import
   const handleImportRecipe = () => {
     if (!importUrl.trim()) {
@@ -144,11 +143,15 @@ export default function RecipesScreen() {
         <View className="flex-row items-center">
           {isCachedAndOffline && (
             <View className="mr-2 flex-row items-center rounded-full bg-gray-100 px-3 py-1">
-              <Ionicons name="cloud-offline-outline" size={14} color="#9ca3af" />
+              <Ionicons
+                name="cloud-offline-outline"
+                size={14}
+                color="#9ca3af"
+              />
               <Text className="ml-1 text-xs text-gray-500">Offline</Text>
             </View>
           )}
-          
+
           <TouchableOpacity
             className="flex-row items-center rounded-full bg-blue-500 px-3 py-2"
             onPress={() => setIsImportModalVisible(true)}
@@ -221,7 +224,7 @@ export default function RecipesScreen() {
           />
         )}
       </View>
-      
+
       {/* Import Recipe Modal */}
       <Modal
         animationType="slide"
@@ -239,11 +242,11 @@ export default function RecipesScreen() {
             <Text className="mb-4 text-center text-2xl font-bold text-gray-800">
               Import Recipe
             </Text>
-            
+
             <Text className="mb-2 text-base text-gray-600">
               Paste a URL to a recipe page to import it
             </Text>
-            
+
             <TextInput
               className="mb-4 rounded-lg border border-gray-300 bg-gray-50 p-3 text-base"
               placeholder="https://example.com/recipe"
@@ -254,7 +257,7 @@ export default function RecipesScreen() {
               keyboardType="url"
               editable={!importMutation.isPending}
             />
-            
+
             <View className="flex-row justify-end space-x-3">
               <TouchableOpacity
                 className="rounded-lg border border-gray-300 px-4 py-2"
@@ -266,9 +269,11 @@ export default function RecipesScreen() {
                 }}
                 disabled={importMutation.isPending}
               >
-                <Text className="text-base font-medium text-gray-700">Cancel</Text>
+                <Text className="text-base font-medium text-gray-700">
+                  Cancel
+                </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 className="rounded-lg bg-blue-500 px-4 py-2"
                 onPress={handleImportRecipe}
@@ -277,7 +282,9 @@ export default function RecipesScreen() {
                 {importMutation.isPending ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text className="text-base font-medium text-white">Import</Text>
+                  <Text className="text-base font-medium text-white">
+                    Import
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>

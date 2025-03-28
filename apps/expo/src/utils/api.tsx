@@ -5,8 +5,8 @@ import superjson from "superjson";
 
 import type { AppRouter } from "@reciperun/trpc";
 
-import { getBaseUrl } from "./base-url";
 import { authClient } from "./auth";
+import { getBaseUrl } from "./base-url";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,10 +36,10 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
           // FIXME: https://github.com/better-auth/better-auth/issues/1855
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
           const cookies = (authClient as any).getCookie() as string;
-          if (cookies) { 
-            headers.set("Cookie", cookies); 
-          } 
-          return Object.fromEntries(headers); 
+          if (cookies) {
+            headers.set("Cookie", cookies);
+          }
+          return Object.fromEntries(headers);
         },
       }),
     ],

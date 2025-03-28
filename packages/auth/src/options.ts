@@ -17,9 +17,7 @@ export const authOptions: BetterAuthOptions = {
   emailAndPassword: {
     enabled: true,
   },
-  plugins: [
-    expo(),
-  ],
+  plugins: [expo()],
   advanced: {
     generateId: false,
   },

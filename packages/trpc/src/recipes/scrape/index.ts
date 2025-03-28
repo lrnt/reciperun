@@ -28,27 +28,27 @@ export async function fetchRecipeFromUrl(
 ): Promise<Result<AnnotatedRecipe>> {
   try {
     console.log(`Fetching recipe from: ${url}`);
-    // Step 2: Extract basic recipe data based on URL type
+    // Step 1: Extract basic recipe data based on URL type
     let basicRecipeResult: Result<BasicRecipe>;
 
-    // 2.a) Known URL format (e.g., Instagram)
+    // 1.a) Known URL format (e.g., Instagram)
     if (INSTAGRAM_URL_PATTERN.test(url)) {
       console.log("Detected Instagram URL, using Instagram scraper");
       basicRecipeResult = await scrapeInstagram(url);
     }
-    // 2.b) Try JSON-LD extraction first
+    // 1.b) Try JSON-LD extraction first
     else {
       console.log("Trying JSON-LD scraping");
       basicRecipeResult = await scrapeJsonLd(url);
 
-      // 2.c) If JSON-LD fails, try Stagehand approach
+      // 1.c) If JSON-LD fails, try Stagehand approach
       if (basicRecipeResult.error) {
         console.log("JSON-LD scraping failed, trying Stagehand");
         basicRecipeResult = await scrapeWithStagehand(url);
       }
     }
 
-    // Step 3: If we failed to extract basic recipe data, return error
+    // If we failed to extract basic recipe data, return error
     if (basicRecipeResult.error) {
       console.error("Failed to extract recipe data:", basicRecipeResult.error);
       return failure(basicRecipeResult.error);
@@ -56,7 +56,7 @@ export async function fetchRecipeFromUrl(
 
     console.log("Successfully extracted basic recipe data");
 
-    // Step 4: Annotate the basic recipe using AI
+    // Step 2: Annotate the basic recipe using AI
     const annotatedRecipeResult = await annotateRecipe(basicRecipeResult.data);
 
     if (annotatedRecipeResult.error) {
