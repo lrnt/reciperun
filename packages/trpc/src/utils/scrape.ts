@@ -14,11 +14,6 @@ export interface JsonLdEntity {
   [key: string]: unknown;
 }
 
-export interface RecipeData {
-  recipe: JsonLdEntity;
-  url: string;
-}
-
 /**
  * Create a successful Result
  */
@@ -123,8 +118,7 @@ export async function fetchJsonLdFromUrl(
  */
 export function extractRecipeFromJsonLd(
   entities: JsonLdEntity[],
-  url: string,
-): Result<RecipeData> {
+): Result<JsonLdEntity> {
   if (!entities.length) {
     return failure(new Error("No JSON-LD entities provided"));
   }
@@ -136,10 +130,7 @@ export function extractRecipeFromJsonLd(
         "Recipe JSON-LD data found:",
         JSON.stringify(entity, null, 2),
       );
-      return success({
-        recipe: entity,
-        url,
-      });
+      return success(entity);
     }
   }
 
@@ -153,10 +144,7 @@ export function extractRecipeFromJsonLd(
           "Recipe JSON-LD data found in @graph:",
           JSON.stringify(graphItem, null, 2),
         );
-        return success({
-          recipe: graphItem,
-          url,
-        });
+        return success(graphItem);
       }
     }
   }
@@ -180,17 +168,14 @@ export async function fetchRecipeFromUrl(url: string) {
   }
 
   // Step 2: Extract recipe from the JSON-LD data
-  const jsonLdRecipe = extractRecipeFromJsonLd(jsonLdResult.data, url);
+  const jsonLdRecipe = extractRecipeFromJsonLd(jsonLdResult.data);
 
   if (jsonLdRecipe.error) {
     return failure(jsonLdRecipe.error);
   }
 
   // Step 3: Normalize the JSON-LD recipe to our application's schema
-  const normalizedRecipe = await normalizeJsonLdRecipe(
-    jsonLdRecipe.data.recipe,
-    url,
-  );
+  const normalizedRecipe = await normalizeJsonLdRecipe(jsonLdRecipe.data, url);
 
   if (normalizedRecipe.error) {
     return failure(normalizedRecipe.error);
