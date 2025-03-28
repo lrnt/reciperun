@@ -1,4 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { generateObject } from "ai";
 
 import type { JsonLdEntity } from "./json-ld";
 import { recipeSchema } from "../router/recipes";
@@ -58,7 +59,6 @@ export async function fetchRecipeFromUrl(url: string) {
 export async function normalizeJsonLdRecipe(recipe: JsonLdEntity, url: string) {
   try {
     console.log("Normalizing JSON-LD recipe with AI...");
-    const { generateObject } = await import("ai");
 
     // Define the prompt for the AI model
     const prompt = `
