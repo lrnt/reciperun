@@ -10,7 +10,6 @@ export interface Failure<E> {
 
 export type Result<T, E = Error> = Success<T> | Failure<E>;
 
-
 /**
  * Create a successful Result
  */
