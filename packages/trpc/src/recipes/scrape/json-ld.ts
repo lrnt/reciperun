@@ -1,5 +1,5 @@
-import type { Result } from "./try-catch";
-import { failure, success } from "./try-catch";
+import type { Result } from "../../utils/try-catch";
+import { failure, success } from "../../utils/try-catch";
 
 /**
  * Utilities for working with JSON-LD data

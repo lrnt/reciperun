@@ -1,6 +1,6 @@
 import { createTRPCRouter } from "./trpc";
-import { authRouter } from "./router/auth";
-import { recipesRouter } from "./router/recipes";
+import { authRouter } from "./auth/router";
+import { recipesRouter } from "./recipes/router";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,

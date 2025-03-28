@@ -2,12 +2,9 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 
 import type { JsonLdEntity } from "./json-ld";
-import { recipeContentSchema } from "../router/recipes";
-import {
-  extractRecipeFromJsonLd,
-  fetchJsonLdFromHtml as fetchJsonLdFromHtml,
-} from "./json-ld";
-import { failure, success } from "./try-catch";
+import { extractRecipeFromJsonLd, fetchJsonLdFromHtml } from "./json-ld";
+import { failure, success } from "../../utils/try-catch";
+import { annotatedRecipeSchema } from "../schemas";
 
 /**
  * Fetches a recipe from a URL by extracting JSON-LD data
@@ -208,7 +205,7 @@ Then annotate the instructions following the format above.
     // Use the Vercel AI SDK to generate the structured recipe
     const aiEnhancedRecipe = await generateObject({
       model: anthropic("claude-3-5-sonnet-20240620"),
-      schema: recipeContentSchema,
+      schema: annotatedRecipeSchema,
       prompt,
     });
 
