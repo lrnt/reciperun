@@ -1,12 +1,12 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 
-import { recipeSchema } from "../router/recipes";
-import { failure, success } from "./try-catch";
 import type { JsonLdEntity } from "./json-ld";
+import { recipeSchema } from "../router/recipes";
 import {
-  fetchJsonLdFromUrl as fetchJsonLdFromHtml,
   extractRecipeFromJsonLd,
+  fetchJsonLdFromUrl as fetchJsonLdFromHtml,
 } from "./json-ld";
+import { failure, success } from "./try-catch";
 
 /**
  * Fetches a recipe from a URL by extracting JSON-LD data
@@ -14,19 +14,19 @@ import {
  * @returns Result with recipe data or error
  */
 export async function fetchRecipeFromUrl(url: string) {
-    // Step 1: Fetch the webpage content
-    const response = await fetch(url);
+  // Step 1: Fetch the webpage content
+  const response = await fetch(url);
 
-    if (!response.ok) {
-      const errorMessage = `Failed to fetch URL: ${response.status} ${response.statusText}`;
-      console.error(errorMessage);
-      return failure(new Error(errorMessage));
-    }
+  if (!response.ok) {
+    const errorMessage = `Failed to fetch URL: ${response.status} ${response.statusText}`;
+    console.error(errorMessage);
+    return failure(new Error(errorMessage));
+  }
 
-    const html = await response.text();
+  const html = await response.text();
 
   // Step 2: Fetch JSON-LD data from the URL
-  const jsonLdResult =  fetchJsonLdFromHtml(html);
+  const jsonLdResult = fetchJsonLdFromHtml(html);
 
   // If fetching failed, return early with the error
   if (jsonLdResult.error) {
