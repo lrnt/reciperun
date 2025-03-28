@@ -2,10 +2,10 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 
 import type { JsonLdEntity } from "./json-ld";
-import { recipeSchema } from "../router/recipes";
+import { recipeContentSchema } from "../router/recipes";
 import {
   extractRecipeFromJsonLd,
-  fetchJsonLdFromUrl as fetchJsonLdFromHtml,
+  fetchJsonLdFromHtml as fetchJsonLdFromHtml,
 } from "./json-ld";
 import { failure, success } from "./try-catch";
 
@@ -62,32 +62,33 @@ export async function normalizeJsonLdRecipe(recipe: JsonLdEntity) {
     console.log("Normalizing JSON-LD recipe...");
 
     // Step 1: Directly extract simple properties from JSON-LD
-    const title = typeof recipe.name === 'string' ? recipe.name : '';
-    const description = typeof recipe.description === 'string' ? recipe.description : '';
-    
+    const title = typeof recipe.name === "string" ? recipe.name : "";
+    const description =
+      typeof recipe.description === "string" ? recipe.description : "";
+
     // Handle image URL (could be a string or an object with url property)
     let imageUrl: string | undefined;
-    if (typeof recipe.image === 'string') {
+    if (typeof recipe.image === "string") {
       imageUrl = recipe.image;
     } else if (
-      typeof recipe.image === 'object' && 
+      typeof recipe.image === "object" &&
       recipe.image !== null &&
-      'url' in recipe.image &&
-      typeof (recipe.image as { url: string }).url === 'string'
+      "url" in recipe.image &&
+      typeof (recipe.image as { url: string }).url === "string"
     ) {
       imageUrl = (recipe.image as { url: string }).url;
     }
 
     // Parse cook time (PT1H30M format to minutes)
     let cookTime = 0;
-    if (typeof recipe.cookTime === 'string') {
+    if (typeof recipe.cookTime === "string") {
       const timeString = recipe.cookTime;
       cookTime = parseISO8601Duration(timeString);
     }
 
     // Get prep time or default to estimate
     let prepTime = 0;
-    if (typeof recipe.prepTime === 'string') {
+    if (typeof recipe.prepTime === "string") {
       const timeString = recipe.prepTime;
       prepTime = parseISO8601Duration(timeString);
     }
@@ -95,8 +96,8 @@ export async function normalizeJsonLdRecipe(recipe: JsonLdEntity) {
     // Extract ingredients as simple strings
     const rawIngredients: string[] = [];
     if (Array.isArray(recipe.recipeIngredient)) {
-      recipe.recipeIngredient.forEach(ingredient => {
-        if (typeof ingredient === 'string') {
+      recipe.recipeIngredient.forEach((ingredient) => {
+        if (typeof ingredient === "string") {
           rawIngredients.push(ingredient);
         }
       });
@@ -105,16 +106,35 @@ export async function normalizeJsonLdRecipe(recipe: JsonLdEntity) {
     // Extract instructions as simple strings
     const rawInstructions: string[] = [];
     if (Array.isArray(recipe.recipeInstructions)) {
-      recipe.recipeInstructions.forEach(instruction => {
-        if (typeof instruction === 'string') {
+      recipe.recipeInstructions.forEach((instruction) => {
+        // Case 1: Instruction is a simple string
+        if (typeof instruction === "string") {
           rawInstructions.push(instruction);
-        } else if (
-          typeof instruction === 'object' && 
+        }
+        // Case 2: Instruction is an object with a text property that's a string
+        else if (
+          typeof instruction === "object" &&
           instruction !== null &&
-          'text' in instruction &&
-          typeof (instruction as { text: string }).text === 'string'
+          "text" in instruction &&
+          typeof (instruction as { text: unknown }).text === "string"
         ) {
           rawInstructions.push((instruction as { text: string }).text);
+        }
+        // Case 3: Instruction is an object with a text property that's an array of strings
+        else if (
+          typeof instruction === "object" &&
+          instruction !== null &&
+          "text" in instruction &&
+          Array.isArray((instruction as { text: unknown }).text)
+        ) {
+          const textArray = (instruction as { text: unknown[] }).text;
+          const combinedText = textArray
+            .filter((item) => typeof item === "string")
+            .join(" ");
+
+          if (combinedText) {
+            rawInstructions.push(combinedText);
+          }
         }
       });
     }
@@ -183,13 +203,12 @@ Example with no annotations needed:
 
 Convert the raw ingredients into structured data with name, quantity, unit, and notes.
 Then annotate the instructions following the format above.
-Generate an id for the recipe.
 `;
 
     // Use the Vercel AI SDK to generate the structured recipe
     const aiEnhancedRecipe = await generateObject({
       model: anthropic("claude-3-5-sonnet-20240620"),
-      schema: recipeSchema,
+      schema: recipeContentSchema,
       prompt,
     });
 
@@ -197,7 +216,7 @@ Generate an id for the recipe.
     const finalRecipe = {
       ...aiEnhancedRecipe,
       title: title || aiEnhancedRecipe.object.title,
-      description: description || aiEnhancedRecipe.object.description, 
+      description: description || aiEnhancedRecipe.object.description,
       imageUrl: imageUrl,
       cookTime: cookTime || aiEnhancedRecipe.object.cookTime,
       prepTime: prepTime || aiEnhancedRecipe.object.prepTime,
@@ -222,20 +241,20 @@ Generate an id for the recipe.
  */
 function parseISO8601Duration(duration: string): number {
   let minutes = 0;
-  
+
   // Handle hour component
   const hourRegex = /(\d+)H/;
   const hourMatch = hourRegex.exec(duration);
   if (hourMatch?.[1]) {
     minutes += parseInt(hourMatch[1], 10) * 60;
   }
-  
+
   // Handle minute component
   const minuteRegex = /(\d+)M/;
   const minuteMatch = minuteRegex.exec(duration);
   if (minuteMatch?.[1]) {
     minutes += parseInt(minuteMatch[1], 10);
   }
-  
+
   return minutes;
 }

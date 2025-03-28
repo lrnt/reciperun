@@ -33,12 +33,10 @@ export function isJsonLdRecipe(entity: JsonLdEntity): boolean {
 /**
  * Fetches and extracts JSON-LD entities from a given URL
  *
- * @param url - The URL to fetch JSON-LD data from
+ * @param html - The HTML content to search for JSON-LD scripts
  * @returns A Result containing an array of JSON-LD entities or an error
  */
-export function fetchJsonLdFromUrl(
-  html: string,
-): Result<JsonLdEntity[]> {
+export function fetchJsonLdFromHtml(html: string): Result<JsonLdEntity[]> {
   try {
     // Extract JSON-LD script tags from HTML
     const jsonLdBlocks = extractJsonLdBlocks(html);
