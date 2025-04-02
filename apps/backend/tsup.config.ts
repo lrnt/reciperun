@@ -10,4 +10,9 @@ export default defineConfig({
   sourcemap: true,
   format: 'esm',
   clean: true,
+  external: [
+    'chromium-bidi',
+    'playwright-core',
+    '@browserbasehq/stagehand'
+  ]
 })

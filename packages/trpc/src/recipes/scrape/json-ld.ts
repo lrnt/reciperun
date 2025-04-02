@@ -1,6 +1,6 @@
 import type { Result } from "../../utils/try-catch";
 import type { BasicRecipe } from "../schemas";
-import { failure, success } from "../../utils/try-catch";
+import { failure, success, tryCatch } from "../../utils/try-catch";
 
 /**
  * Utilities for working with JSON-LD data
@@ -89,14 +89,10 @@ function extractJsonLdBlocks(html: string): string[] {
  */
 function parseJsonLdBlocks(jsonLdBlocks: string[]): JsonLdEntity[] {
   return jsonLdBlocks
-    .map((jsonContent) => {
-      try {
-        return JSON.parse(jsonContent) as JsonLdEntity;
-      } catch (parseError) {
-        console.error("Error parsing JSON-LD:", parseError);
-        return null;
-      }
-    })
+    .map(
+      (jsonContent) =>
+        tryCatch(() => JSON.parse(jsonContent) as JsonLdEntity).data,
+    )
     .filter(Boolean) as JsonLdEntity[];
 }
 
@@ -311,7 +307,7 @@ export function convertJsonLdToBasicRecipe(
  */
 export async function scrapeJsonLd(url: string): Promise<Result<BasicRecipe>> {
   try {
-    // Step 1: Fetch HTML if not provided
+    // Step 1: Fetch HTML
     const response = await fetch(url);
 
     if (!response.ok) {

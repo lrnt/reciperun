@@ -391,15 +391,14 @@ export const recipesRouter = {
       if (result.error) {
         return {
           success: false,
-          error: result.error.message,
+          //error: result.error,
           data: null,
         };
-      } else {
-        return {
-          success: true,
-          error: null,
-          data: result.data,
-        };
       }
+      return {
+        success: true,
+        error: null,
+        data: result.data,
+      };
     }),
 } satisfies TRPCRouterRecord;

@@ -50,7 +50,8 @@
     "AUTH_SECRET",
     "BASE_URL",
     "PORT",
-    "ANTHROPIC_API_KEY"
+    "ANTHROPIC_API_KEY",
+    "BROWSERBASE_API_KEY"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
