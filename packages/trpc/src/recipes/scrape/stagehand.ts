@@ -42,8 +42,7 @@ export async function scrapeWithStagehand(
     });
 
     const recipe = await page.extract({
-      instruction:
-        "Extract the recipe information from the page.",
+      instruction: "Extract the recipe information from the page.",
       schema: basicRecipeSchema,
     });
 

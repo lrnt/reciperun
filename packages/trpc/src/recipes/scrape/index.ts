@@ -52,7 +52,9 @@ export async function fetchRecipeFromUrl(
   }
 
   if (basicRecipeScraper === "json-ld") {
-    const { data: saneRecipe } = await sanityCheckRecipe(basicRecipeResult.data);
+    const { data: saneRecipe } = await sanityCheckRecipe(
+      basicRecipeResult.data,
+    );
 
     if (!saneRecipe) {
       console.log("Recipe is not sane, trying stagehand");

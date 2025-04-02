@@ -29,29 +29,29 @@ export function failure<E>(error: E): Failure<E> {
  * If the function returns a Promise, the Result will be wrapped in a Promise
  */
 export const tryCatch = <T, E = Error>(
-  promiseOrFunction: Promise<T> | (() => T | Promise<T>)
+  promiseOrFunction: Promise<T> | (() => T | Promise<T>),
 ): Promise<Result<T, E>> | Result<T, E> => {
   // Handle function case
-  if (typeof promiseOrFunction === 'function') {
+  if (typeof promiseOrFunction === "function") {
     try {
       const result = promiseOrFunction();
-      
+
       // If function returns a promise, handle it asynchronously
       if (result instanceof Promise) {
         return result
-          .then(data => ({ data, error: null }))
-          .catch(error => ({ data: null, error: error as E }));
+          .then((data) => ({ data, error: null }))
+          .catch((error) => ({ data: null, error: error as E }));
       }
-      
+
       // If function returns a value, return synchronously
       return { data: result, error: null };
     } catch (error) {
       return { data: null, error: error as E };
     }
   }
-  
+
   // Handle direct promise case
   return promiseOrFunction
-    .then(data => ({ data, error: null }))
-    .catch(error => ({ data: null, error: error as E }));
+    .then((data) => ({ data, error: null }))
+    .catch((error) => ({ data: null, error: error as E }));
 };
