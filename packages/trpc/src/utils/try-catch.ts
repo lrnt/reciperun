@@ -28,26 +28,30 @@ export function failure<E>(error: E): Failure<E> {
  * Wraps a function (sync or async) in a try/catch and returns a Result
  * If the function returns a Promise, the Result will be wrapped in a Promise
  */
-export function tryCatch<T>(fn: () => T): Result<T, Error>;
-export function tryCatch<T>(fn: () => Promise<T>): Promise<Result<T, Error>>;
-export function tryCatch<T, E = Error>(
-  fn: () => T | Promise<T>,
-): Result<T, E> | Promise<Result<T, E>> {
-  try {
-    const result = fn();
-
-    // Check if the result is a Promise
-    if (result instanceof Promise) {
-      // Handle async function
-      return result
-        .then((data) => ({ data, error: null }))
-        .catch((error) => ({ data: null, error: error as E }));
+export const tryCatch = <T, E = Error>(
+  promiseOrFunction: Promise<T> | (() => T | Promise<T>)
+): Promise<Result<T, E>> | Result<T, E> => {
+  // Handle function case
+  if (typeof promiseOrFunction === 'function') {
+    try {
+      const result = promiseOrFunction();
+      
+      // If function returns a promise, handle it asynchronously
+      if (result instanceof Promise) {
+        return result
+          .then(data => ({ data, error: null }))
+          .catch(error => ({ data: null, error: error as E }));
+      }
+      
+      // If function returns a value, return synchronously
+      return { data: result, error: null };
+    } catch (error) {
+      return { data: null, error: error as E };
     }
-
-    // Handle sync function
-    return { data: result, error: null };
-  } catch (error) {
-    // Handle synchronous errors
-    return { data: null, error: error as E };
   }
-}
+  
+  // Handle direct promise case
+  return promiseOrFunction
+    .then(data => ({ data, error: null }))
+    .catch(error => ({ data: null, error: error as E }));
+};

@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.2",
-    "@browserbasehq/stagehand": "^1.14.0",
+    "@browserbasehq/stagehand": "^2.0.0",
     "@reciperun/auth": "workspace:*",
     "@reciperun/db": "workspace:*",
     "@trpc/server": "catalog:",

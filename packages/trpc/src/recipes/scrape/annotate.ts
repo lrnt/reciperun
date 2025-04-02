@@ -1,10 +1,15 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
+import { z } from "zod";
 
 import type { Result } from "../../utils/try-catch";
 import type { AnnotatedRecipe, BasicRecipe } from "../schemas";
-import { failure, success } from "../../utils/try-catch";
+import { failure, success, tryCatch } from "../../utils/try-catch";
 import { annotatedRecipeSchema } from "../schemas";
+
+const anthropic = createAnthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 /**
  * Takes a basic recipe and enhances it with AI annotations
@@ -15,15 +20,6 @@ export async function annotateRecipe(
   recipe: BasicRecipe,
 ): Promise<Result<AnnotatedRecipe>> {
   try {
-    // Ensure API key is available
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error("Missing ANTHROPIC_API_KEY");
-    }
-
-    const anthropic = createAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-
     // Define the prompt for the AI model
     const prompt = `
 You're an expert at parsing recipe data. I have already extracted the basic recipe information and need your help with:
@@ -78,12 +74,16 @@ Example with no annotations needed:
 }
 
 Convert the raw ingredients into structured data with name, quantity, unit, and notes.
+Only use units and quantities if they make sense. Set them to null if they are too vague like "to taste".
+
 Then annotate the instructions following the format above.
+
+Retain the original language of the recipe.
 `;
 
     // Use the Vercel AI SDK to generate the structured recipe
     const aiEnhancedRecipe = await generateObject({
-      model: anthropic("claude-3-5-sonnet-20240620"),
+      model: anthropic("claude-3-7-sonnet-20250219"),
       schema: annotatedRecipeSchema,
       prompt,
     });
@@ -108,4 +108,50 @@ Then annotate the instructions following the format above.
         : new Error("Unknown error annotating recipe with AI"),
     );
   }
+}
+
+export async function sanityCheckRecipe(recipe: BasicRecipe) {
+  const prompt = `
+  You are an expert at evaluating recipes.
+
+  Basic recipe info:
+  - Title: ${recipe.title}
+  - Description: ${recipe.description}
+  - Cook Time: ${recipe.cookTime ?? 0} minutes
+  - Prep Time: ${recipe.prepTime ?? 0} minutes
+
+  Raw Ingredients (as strings):
+  ${JSON.stringify(recipe.ingredients, null, 2)}
+
+  Raw Instructions (as strings):
+  ${JSON.stringify(recipe.instructions, null, 2)}
+
+  Please evaluate the recipe and provide feedback on the following:
+  - Is the recipe missing ingredients?
+  - Is the recipe missing instructions?
+`;
+
+  const evaluationResult = await tryCatch(
+    generateObject({
+      model: anthropic("claude-3-7-sonnet-20250219"),
+      schema: z.object({
+        missingIngredients: z
+          .boolean()
+          .describe("Whether the recipe is missing ingredients"),
+        missingInstructions: z
+          .boolean()
+          .describe("Whether the recipe is missing instructions"),
+      }),
+      prompt,
+    }),
+  );
+
+  if (evaluationResult.error) {
+    return failure(evaluationResult.error);
+  }
+
+  return success(
+    evaluationResult.data.object.missingIngredients &&
+      evaluationResult.data.object.missingInstructions,
+  );
 }

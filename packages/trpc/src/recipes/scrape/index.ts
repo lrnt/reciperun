@@ -1,7 +1,7 @@
 import type { Result } from "../../utils/try-catch";
 import type { AnnotatedRecipe } from "../schemas";
 import { failure, success } from "../../utils/try-catch";
-import { annotateRecipe } from "./annotate";
+import { annotateRecipe, sanityCheckRecipe } from "./annotate";
 import { scrapeInstagram } from "./instagram";
 import { scrapeJsonLd } from "./json-ld";
 import { scrapeWithStagehand } from "./stagehand";
@@ -25,15 +25,17 @@ export async function fetchRecipeFromUrl(
   url: string,
 ): Promise<Result<AnnotatedRecipe>> {
   let basicRecipeResult;
+  let basicRecipeScraper;
 
   const scrapers = [
-    scrapeInstagram,
-    scrapeJsonLd,
-    scrapeWithStagehand,
+    { name: "instagram", fn: scrapeInstagram },
+    { name: "json-ld", fn: scrapeJsonLd },
+    { name: "stagehand", fn: scrapeWithStagehand },
   ];
 
   for (const scraper of scrapers) {
-    basicRecipeResult = await scraper(url);
+    basicRecipeScraper = scraper.name;
+    basicRecipeResult = await scraper.fn(url);
 
     if (basicRecipeResult.data !== null) {
       break;
@@ -47,6 +49,21 @@ export async function fetchRecipeFromUrl(
   if (basicRecipeResult.error) {
     console.error("Failed to extract recipe data:", basicRecipeResult.error);
     return failure(basicRecipeResult.error);
+  }
+
+  if (basicRecipeScraper === "json-ld") {
+    const { data: saneRecipe } = await sanityCheckRecipe(basicRecipeResult.data);
+
+    if (!saneRecipe) {
+      console.log("Recipe is not sane, trying stagehand");
+      basicRecipeScraper = "stagehand";
+      basicRecipeResult = await scrapeWithStagehand(url);
+    }
+
+    if (basicRecipeResult.error) {
+      console.error("Failed to extract recipe data:", basicRecipeResult.error);
+      return failure(basicRecipeResult.error);
+    }
   }
 
   const annotatedRecipeResult = await annotateRecipe(basicRecipeResult.data);
