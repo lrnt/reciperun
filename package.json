@@ -12,6 +12,7 @@
     "clean:workspaces": "turbo run clean",
     "db:push": "turbo -F @reciperun/db push",
     "db:studio": "turbo -F @reciperun/db studio",
+    "db:seed": "turbo -F @reciperun/db seed",
     "dev": "turbo watch dev --continue",
     "format": "turbo run format --continue -- --cache --cache-location .cache/.prettiercache",
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
