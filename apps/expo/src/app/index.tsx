@@ -18,7 +18,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import type { Recipe } from "@reciperun/trpc/router/recipes";
+import type { RecipeWithId } from "@reciperun/trpc/recipes";
 
 import { trpc } from "~/utils/api";
 
@@ -50,7 +50,8 @@ export default function RecipesScreen() {
         } else {
           Alert.alert(
             "Import Completed",
-            `The URL was processed, but ${data.error ?? "no recipe data was found"}`,
+
+            "The URL was processed, but no recipe data was found",
             [{ text: "OK" }],
           );
         }
@@ -89,7 +90,7 @@ export default function RecipesScreen() {
       : `${hours} hr`;
   };
 
-  const RecipeCard = ({ item }: { item: Recipe }) => (
+  const RecipeCard = ({ item }: { item: RecipeWithId }) => (
     <Pressable
       className="mb-6 overflow-hidden rounded-2xl bg-white"
       style={{

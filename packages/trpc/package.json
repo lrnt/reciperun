@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./router/recipes": "./src/router/recipes.ts"
+    "./recipes": "./src/recipes/index.ts"
   },
   "license": "MIT",
   "scripts": {

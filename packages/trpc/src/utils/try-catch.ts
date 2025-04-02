@@ -28,9 +28,16 @@ export function failure<E>(error: E): Failure<E> {
  * Wraps a function (sync or async) in a try/catch and returns a Result
  * If the function returns a Promise, the Result will be wrapped in a Promise
  */
-export const tryCatch = <T, E = Error>(
+export function tryCatch<T, E = Error>(fn: () => T): Result<T, E>;
+export function tryCatch<T, E = Error>(
+  promise: Promise<T>,
+): Promise<Result<T, E>>;
+export function tryCatch<T, E = Error>(
+  fn: () => Promise<T>,
+): Promise<Result<T, E>>;
+export function tryCatch<T, E = Error>(
   promiseOrFunction: Promise<T> | (() => T | Promise<T>),
-): Promise<Result<T, E>> | Result<T, E> => {
+): Promise<Result<T, E>> | Result<T, E> {
   // Handle function case
   if (typeof promiseOrFunction === "function") {
     try {
@@ -54,4 +61,4 @@ export const tryCatch = <T, E = Error>(
   return promiseOrFunction
     .then((data) => ({ data, error: null }))
     .catch((error) => ({ data: null, error: error as E }));
-};
+}

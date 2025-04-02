@@ -13,7 +13,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 
-import type { Annotation, Ingredient } from "@reciperun/trpc/router/recipes";
+import type { Annotation, Ingredient } from "@reciperun/trpc/recipes";
 
 import { trpc } from "~/utils/api";
 
