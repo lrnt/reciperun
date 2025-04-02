@@ -51,7 +51,8 @@
     "BASE_URL",
     "PORT",
     "ANTHROPIC_API_KEY",
-    "BROWSERBASE_API_KEY"
+    "BROWSERBASE_API_KEY",
+    "BROWSERBASE_PROJECT_ID"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
