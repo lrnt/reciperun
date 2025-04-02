@@ -1,6 +1,7 @@
 import { integer, json, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { user } from "./auth";
+
 import { generateId } from "../utils";
+import { user } from "./auth";
 
 export const recipe = pgTable("recipe", {
   id: text("id").primaryKey().$defaultFn(generateId),

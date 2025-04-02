@@ -29,7 +29,7 @@ export async function scrapeWithStagehand(
 
   await page.goto(url, {
     timeout: 60000,
-    waitUntil: "domcontentloaded"
+    waitUntil: "domcontentloaded",
   });
 
   const recipeResult = await tryCatch(
