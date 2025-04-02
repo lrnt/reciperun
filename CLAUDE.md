@@ -49,6 +49,8 @@ The project uses better-auth for authentication with email/password support. Mob
 - Naming: PascalCase for components/types, camelCase for variables/functions
 - Environment: Always use `import { env } from '~/env'` instead of process.env
 - Error Handling: No non-null assertions, proper error checks
+- Results Pattern: Do not wrap calls in try catch, use the tryCatch function and results pattern
+- Early returns: Favor a linear flow with no nested if/else, use a return early pattern
 - Monorepo: Packages in `/packages`, apps in `/apps`, tooling in `/tooling`
 - Styling: Tailwind CSS for styling (packages tailwind and nativewind)
 
