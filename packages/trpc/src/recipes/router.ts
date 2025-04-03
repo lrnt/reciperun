@@ -65,7 +65,7 @@ export const recipesRouter = {
           })
           .from(instruction)
           .where(eq(instruction.recipeId, input.id))
-          .orderBy(instruction.id),
+          .orderBy(instruction.order),
       ]);
 
       if (recipeData.length === 0) {
