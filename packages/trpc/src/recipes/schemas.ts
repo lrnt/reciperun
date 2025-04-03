@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 // Ingredient for annotated recipe
-export type Ingredient = z.infer<typeof ingredientSchema>;
 export const ingredientSchema = z.object({
   name: z.string().describe("Name of the ingredient (e.g., 'flour', 'eggs')"),
   quantity: z
@@ -21,7 +20,6 @@ export const ingredientSchema = z.object({
 });
 
 // Annotation for instruction step
-export type Annotation = z.infer<typeof annotationSchema>;
 export const annotationSchema = z.object({
   ingredientIndex: z
     .number()

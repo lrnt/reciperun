@@ -1,10 +1,9 @@
-import type { TRPCRouterRecord } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { ingredient, instruction, recipe } from "@reciperun/db";
 
-import type { RecipeWithId } from "./schemas";
 import { publicProcedure } from "../trpc";
 import { fetchRecipeFromUrl } from "./scrape";
 
@@ -26,7 +25,7 @@ export const recipesRouter = {
       .from(recipe)
       .orderBy(asc(recipe.title));
 
-    return recipesData as RecipeWithId[];
+    return recipesData;
   }),
 
   // Get recipe by id
@@ -49,6 +48,7 @@ export const recipesRouter = {
           .limit(1),
         ctx.db
           .select({
+            id: ingredient.id,
             name: ingredient.name,
             quantity: ingredient.quantity,
             unit: ingredient.unit,
@@ -58,6 +58,7 @@ export const recipesRouter = {
           .where(eq(ingredient.recipeId, input.id)),
         ctx.db
           .select({
+            id: instruction.id,
             text: instruction.text,
             annotatedText: instruction.annotatedText,
             annotations: instruction.annotations,
@@ -68,7 +69,10 @@ export const recipesRouter = {
       ]);
 
       if (recipeData.length === 0) {
-        return null;
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Recipe not found",
+        });
       }
 
       // Combine the results
@@ -76,7 +80,7 @@ export const recipesRouter = {
         ...recipeData[0],
         ingredients,
         instructions,
-      } as RecipeWithId;
+      };
     }),
 
   // Import recipe from URL
@@ -98,4 +102,4 @@ export const recipesRouter = {
         data: result.data,
       };
     }),
-} satisfies TRPCRouterRecord;
+};

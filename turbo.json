@@ -40,9 +40,9 @@
       "cache": false,
       "persistent": true
     },
-    "ui-add": {
+    "seed": {
       "cache": false,
-      "interactive": true
+      "persistent": true
     }
   },
   "globalEnv": [

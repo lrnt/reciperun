@@ -34,6 +34,11 @@ export const instruction = pgTable("instruction", {
     .references(() => recipe.id, { onDelete: "cascade" }),
   text: text("text").notNull(),
   annotatedText: text("annotated_text"),
-  annotations: json("annotations"),
+  annotations: json("annotations").$type<
+    {
+      ingredientId: string;
+      portionUsed: number;
+    }[]
+  >(),
   order: integer("order").notNull(),
 });

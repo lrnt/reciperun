@@ -18,7 +18,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import type { RecipeWithId } from "@reciperun/trpc/recipes";
+import type { RecipeListItem } from "@reciperun/trpc/recipes";
 
 import { trpc } from "~/utils/api";
 
@@ -90,7 +90,7 @@ export default function RecipesScreen() {
       : `${hours} hr`;
   };
 
-  const RecipeCard = ({ item }: { item: RecipeWithId }) => (
+  const RecipeCard = ({ item }: { item: RecipeListItem }) => (
     <Pressable
       className="mb-6 overflow-hidden rounded-2xl bg-white"
       style={{
@@ -119,18 +119,22 @@ export default function RecipesScreen() {
         <Text className="mb-4 text-base text-gray-600">{item.description}</Text>
 
         <View className="mb-1 flex-row justify-between">
-          <View className="flex-row items-center">
-            <Ionicons name="time-outline" size={18} color="#6b7280" />
-            <Text className="ml-1 text-sm text-gray-500">
-              Prep: {formatTime(item.prepTime)}
-            </Text>
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="flame-outline" size={18} color="#6b7280" />
-            <Text className="ml-1 text-sm text-gray-500">
-              Cook: {formatTime(item.cookTime)}
-            </Text>
-          </View>
+          {item.prepTime && (
+            <View className="flex-row items-center">
+              <Ionicons name="time-outline" size={18} color="#6b7280" />
+              <Text className="ml-1 text-sm text-gray-500">
+                Prep: {formatTime(item.prepTime)}
+              </Text>
+            </View>
+          )}
+          {item.cookTime && (
+            <View className="flex-row items-center">
+              <Ionicons name="flame-outline" size={18} color="#6b7280" />
+              <Text className="ml-1 text-sm text-gray-500">
+                Cook: {formatTime(item.cookTime)}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </Pressable>

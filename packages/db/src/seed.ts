@@ -73,7 +73,6 @@ const mockRecipes = [
         annotations: [
           {
             ingredientIndex: 0,
-            note: "Should still be hot",
           },
           {
             ingredientIndex: 1,
@@ -174,7 +173,7 @@ const mockRecipes = [
         annotations: [
           {
             ingredientIndex: 0,
-            note: "Cook until internal temperature reaches 165°F or 74°C",
+            portionUsed: 1,
           },
         ],
       },
@@ -199,12 +198,6 @@ const mockRecipes = [
       },
       {
         text: "Add remaining spices and cook until fragrant.",
-        annotatedText: "Add remaining [spices](#0) and cook until fragrant.",
-        annotations: [
-          {
-            note: "The remaining half of the spices from step 1",
-          },
-        ],
       },
       {
         text: "Add diced tomatoes and simmer for 15 minutes.",
@@ -383,21 +376,24 @@ async function seedRecipes() {
 
       console.log(`Recipe created with ID: ${newRecipe.id}`);
 
-      // Insert ingredients
-      await Promise.all(
-        recipeData.ingredients.map((ingredientData, i) =>
-          db.insert(ingredient).values({
-            recipeId: newRecipe.id,
-            name: ingredientData.name,
-            quantity: ingredientData.quantity
-              ? Math.round(ingredientData.quantity * 100)
-              : null,
-            unit: ingredientData.unit,
-            note: ingredientData.note,
-            order: i,
-          }),
-        ),
+      // Insert ingredients in a single DB call
+      const ingredientsToInsert = recipeData.ingredients.map(
+        (ingredientData, i) => ({
+          recipeId: newRecipe.id,
+          name: ingredientData.name,
+          quantity: ingredientData.quantity
+            ? Math.round(ingredientData.quantity * 100)
+            : null,
+          unit: ingredientData.unit,
+          note: ingredientData.note,
+          order: i,
+        }),
       );
+
+      const insertedIngredients = await db
+        .insert(ingredient)
+        .values(ingredientsToInsert)
+        .returning();
 
       console.log(
         `Added ${recipeData.ingredients.length} ingredients for recipe: ${recipeData.title}`,
@@ -405,15 +401,33 @@ async function seedRecipes() {
 
       // Insert instructions
       await Promise.all(
-        recipeData.instructions.map((instructionData, i) =>
-          db.insert(instruction).values({
-            recipeId: newRecipe.id,
-            text: instructionData.text,
-            annotatedText: instructionData.annotatedText,
-            annotations: instructionData.annotations,
-            order: i,
-          }),
-        ),
+        recipeData.instructions.map(async (instructionData, i) => {
+          const annotations = instructionData.annotations
+            ?.map((annotation) => {
+              const ingredientId = insertedIngredients.at(
+                annotation.ingredientIndex,
+              )?.id;
+              if (!ingredientId || !annotation.portionUsed) {
+                return undefined;
+              }
+              return {
+                ingredientId,
+                portionUsed: annotation.portionUsed,
+              };
+            })
+            .filter((annotation) => annotation !== undefined);
+
+          return await db
+            .insert(instruction)
+            .values({
+              recipeId: newRecipe.id,
+              text: instructionData.text,
+              annotatedText: instructionData.annotatedText,
+              annotations: annotations,
+              order: i,
+            })
+            .returning();
+        }),
       );
 
       console.log(
