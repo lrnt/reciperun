@@ -17,7 +17,8 @@
     "studio": "pnpm with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -e ../../.env --",
-    "seed": "pnpm with-env tsx src/seed.ts"
+    "seed": "pnpm with-env tsx src/seed.ts",
+    "clear": "pnpm with-env tsx src/clear.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",
