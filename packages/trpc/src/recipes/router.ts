@@ -33,7 +33,7 @@ export const recipesRouter = {
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       // First, get the basic recipe info
-      const [recipeData, ingredients, instructions] = await ctx.db.batch([
+      const [recipeData, ingredients, instructions] = await Promise.all([
         ctx.db
           .select({
             id: recipe.id,
@@ -86,20 +86,88 @@ export const recipesRouter = {
   // Import recipe from URL
   importFromUrl: publicProcedure
     .input(z.object({ url: z.string().url() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const result = await fetchRecipeFromUrl(input.url);
-      console.log("Import recipe result:", result);
 
-      // When returning to clients, convert to a more API-friendly format
       if (result.error) {
-        return {
-          success: false,
-          data: null,
-        };
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Failed to import recipe: ${result.error.message}`,
+        });
       }
-      return {
-        success: true,
-        data: result.data,
-      };
+
+      const annotatedRecipe = result.data;
+
+      // Begin a transaction to ensure all recipe data is stored atomically
+      return await ctx.db.transaction(async (tx) => {
+        // 1. Insert the base recipe
+        const [recipeRecord] = await tx
+          .insert(recipe)
+          .values({
+            title: annotatedRecipe.title,
+            description: annotatedRecipe.description,
+            prepTime: annotatedRecipe.prepTime,
+            cookTime: annotatedRecipe.cookTime,
+            imageUrl: annotatedRecipe.imageUrl,
+            userId: ctx.session?.user.id, // Link to user if authenticated
+          })
+          .returning();
+
+        if (!recipeRecord) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create recipe record",
+          });
+        }
+
+        // 2. Insert all ingredients and keep track of their IDs
+        const insertedIngredients = await tx
+          .insert(ingredient)
+          .values(
+            annotatedRecipe.ingredients.map((ing, index) => ({
+              recipeId: recipeRecord.id,
+              name: ing.name,
+              quantity: ing.quantity ?? null,
+              unit: ing.unit ?? null,
+              note: ing.note ?? null,
+              order: index,
+            })),
+          )
+          .returning();
+
+        // 3. Insert all instructions with annotations
+        await tx.insert(instruction).values(
+          annotatedRecipe.instructions.map((inst, index) => {
+            // Map ingredientIndex to actual ingredientId using the insertedIngredients array
+            const annotations =
+              inst.annotations?.map((annot) => {
+                // If ingredientIndex is defined, map to the corresponding ingredientId
+                const ingredientId =
+                  annot.ingredientIndex !== undefined
+                    ? (insertedIngredients[annot.ingredientIndex]?.id ?? "")
+                    : "";
+
+                return {
+                  ingredientId,
+                  portionUsed: annot.portionUsed ?? 1,
+                };
+              }) ?? null;
+
+            return {
+              recipeId: recipeRecord.id,
+              text: inst.text,
+              annotatedText: inst.annotatedText ?? null,
+              annotations,
+              order: index,
+            };
+          }),
+        );
+
+        // 4. Return the created recipe with its ID
+        return {
+          ...annotatedRecipe,
+          id: recipeRecord.id,
+        };
+      });
     }),
 };

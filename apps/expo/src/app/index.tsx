@@ -39,22 +39,15 @@ export default function RecipesScreen() {
   // Set up the import recipe mutation
   const importMutation = useMutation(
     trpc.recipes.importFromUrl.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (_data) => {
         setIsImportModalVisible(false);
         setImportUrl("");
 
-        if (data.success && data.data) {
-          Alert.alert("Success", "Recipe found and imported successfully!", [
-            { text: "OK" },
-          ]);
-        } else {
-          Alert.alert(
-            "Import Completed",
-
-            "The URL was processed, but no recipe data was found",
-            [{ text: "OK" }],
-          );
-        }
+        Alert.alert("Success", "Recipe imported successfully!", [
+          { text: "OK" },
+        ]);
+        // Refresh the recipe list
+        void refetch();
       },
       onError: (error) => {
         Alert.alert(

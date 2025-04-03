@@ -74,7 +74,7 @@ Example with no annotations needed:
 }
 
 Convert the raw ingredients into structured data with name, quantity, unit, and notes.
-Only use units and quantities if they make sense. Set them to null if they are too vague like "to taste".
+Only use units and quantities if they make sense. Don't include them if they are too vague like "to taste".
 
 Then annotate the instructions following the format above.
 
