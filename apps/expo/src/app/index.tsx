@@ -112,22 +112,22 @@ export default function RecipesScreen() {
         <Text className="mb-4 text-base text-gray-600">{item.description}</Text>
 
         <View className="mb-1 flex-row justify-between">
-          {item.prepTime && (
+          {item.prepTime ? (
             <View className="flex-row items-center">
               <Ionicons name="time-outline" size={18} color="#6b7280" />
               <Text className="ml-1 text-sm text-gray-500">
                 Prep: {formatTime(item.prepTime)}
               </Text>
             </View>
-          )}
-          {item.cookTime && (
+          ) : null}
+          {item.cookTime ? (
             <View className="flex-row items-center">
               <Ionicons name="flame-outline" size={18} color="#6b7280" />
               <Text className="ml-1 text-sm text-gray-500">
                 Cook: {formatTime(item.cookTime)}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </Pressable>

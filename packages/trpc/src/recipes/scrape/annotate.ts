@@ -93,8 +93,7 @@ Retain the original language of the recipe.
       ...aiEnhancedRecipe.object,
       title: recipe.title,
       description: recipe.description,
-      imageUrl: recipe.imageUrl,
-      cookTime: recipe.cookTime ?? aiEnhancedRecipe.object.cookTime,
+      tookTime: recipe.cookTime ?? aiEnhancedRecipe.object.cookTime,
       prepTime: recipe.prepTime ?? aiEnhancedRecipe.object.prepTime,
     };
 
@@ -150,8 +149,10 @@ export async function sanityCheckRecipe(recipe: BasicRecipe) {
     return failure(evaluationResult.error);
   }
 
+  console.log(evaluationResult.data.object);
+
   return success(
-    evaluationResult.data.object.missingIngredients &&
-      evaluationResult.data.object.missingInstructions,
+    !evaluationResult.data.object.missingIngredients &&
+      !evaluationResult.data.object.missingInstructions,
   );
 }

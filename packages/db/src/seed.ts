@@ -381,9 +381,7 @@ async function seedRecipes() {
         (ingredientData, i) => ({
           recipeId: newRecipe.id,
           name: ingredientData.name,
-          quantity: ingredientData.quantity
-            ? Math.round(ingredientData.quantity * 100)
-            : null,
+          quantity: ingredientData.quantity?.toString() ?? null,
           unit: ingredientData.unit,
           note: ingredientData.note,
           order: i,

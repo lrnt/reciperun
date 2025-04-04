@@ -127,7 +127,7 @@ export const recipesRouter = {
             annotatedRecipe.ingredients.map((ing, index) => ({
               recipeId: recipeRecord.id,
               name: ing.name,
-              quantity: ing.quantity ?? null,
+              quantity: ing.quantity?.toString() ?? null,
               unit: ing.unit ?? null,
               note: ing.note ?? null,
               order: index,

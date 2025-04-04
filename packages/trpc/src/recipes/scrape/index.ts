@@ -26,6 +26,7 @@ export async function fetchRecipeFromUrl(
 ): Promise<Result<AnnotatedRecipe>> {
   let basicRecipeResult;
   let basicRecipeScraper;
+  let imageResult;
 
   const scrapers = [
     { name: "instagram", fn: scrapeInstagram },
@@ -36,6 +37,10 @@ export async function fetchRecipeFromUrl(
   for (const scraper of scrapers) {
     basicRecipeScraper = scraper.name;
     basicRecipeResult = await scraper.fn(url);
+
+    if (basicRecipeResult.data?.imageUrl) {
+      imageResult = basicRecipeResult.data.imageUrl;
+    }
 
     if (basicRecipeResult.data !== null) {
       break;
@@ -75,5 +80,8 @@ export async function fetchRecipeFromUrl(
     return failure(annotatedRecipeResult.error);
   }
 
-  return success(annotatedRecipeResult.data);
+  return success({
+    ...annotatedRecipeResult.data,
+    imageUrl: imageResult,
+  });
 }

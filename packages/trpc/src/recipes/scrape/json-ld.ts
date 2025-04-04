@@ -306,42 +306,33 @@ export function convertJsonLdToBasicRecipe(
  * @param html The HTML content (if already fetched)
  */
 export async function scrapeJsonLd(url: string): Promise<Result<BasicRecipe>> {
-  try {
-    // Step 1: Fetch HTML
-    const response = await fetch(url);
+  // Step 1: Fetch HTML
+  const response = await fetch(url);
 
-    if (!response.ok) {
-      const errorMessage = `Failed to fetch URL: ${response.status} ${response.statusText}`;
-      console.error(errorMessage);
-      return failure(new Error(errorMessage));
-    }
-
-    const html = await response.text();
-
-    // Step 2: Extract JSON-LD data from HTML
-    const jsonLdResult = extractJsonLdFromHtml(html);
-
-    if (jsonLdResult.error) {
-      return failure(jsonLdResult.error);
-    }
-
-    // Step 3: Find recipe entity in JSON-LD data
-    const recipeEntityResult = findRecipeInJsonLd(jsonLdResult.data);
-
-    if (recipeEntityResult.error) {
-      return failure(recipeEntityResult.error);
-    }
-
-    // Step 4: Convert JSON-LD recipe to basic recipe format
-    return convertJsonLdToBasicRecipe(recipeEntityResult.data);
-  } catch (error) {
-    console.error("Error scraping JSON-LD:", error);
-    return failure(
-      error instanceof Error
-        ? error
-        : new Error("Unknown error scraping JSON-LD"),
-    );
+  if (!response.ok) {
+    const errorMessage = `Failed to fetch URL: ${response.status} ${response.statusText}`;
+    console.error(errorMessage);
+    return failure(new Error(errorMessage));
   }
+
+  const html = await response.text();
+
+  // Step 2: Extract JSON-LD data from HTML
+  const jsonLdResult = extractJsonLdFromHtml(html);
+
+  if (jsonLdResult.error) {
+    return failure(jsonLdResult.error);
+  }
+
+  // Step 3: Find recipe entity in JSON-LD data
+  const recipeEntityResult = findRecipeInJsonLd(jsonLdResult.data);
+
+  if (recipeEntityResult.error) {
+    return failure(recipeEntityResult.error);
+  }
+
+  // Step 4: Convert JSON-LD recipe to basic recipe format
+  return convertJsonLdToBasicRecipe(recipeEntityResult.data);
 }
 
 /**

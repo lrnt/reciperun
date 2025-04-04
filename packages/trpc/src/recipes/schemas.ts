@@ -5,15 +5,15 @@ export const ingredientSchema = z.object({
   name: z.string().describe("Name of the ingredient (e.g., 'flour', 'eggs')"),
   quantity: z
     .number()
-    .optional()
+    .nullish()
     .describe("Numerical amount of the ingredient (e.g., 2, 0.5)"),
   unit: z
     .string()
-    .optional()
+    .nullish()
     .describe("Unit of measurement (e.g., 'cups', 'g', 'tbsp')"),
   note: z
     .string()
-    .optional()
+    .nullish()
     .describe(
       "Additional information about the ingredient (e.g., 'to taste', 'for garnish')",
     ),
@@ -201,11 +201,11 @@ export const basicRecipeSchema = z.object({
   totalTime: z
     .number()
     .describe("Total time in minutes (prep + cook)")
-    .optional(),
+    .nullish(),
   servings: z.number().describe("Number of servings the recipe makes"),
   imageUrl: z
     .string()
-    .optional()
+    .nullish()
     .describe("URL to an image of the completed dish"),
 });
 export type BasicRecipe = z.infer<typeof basicRecipeSchema>;

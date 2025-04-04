@@ -1,4 +1,11 @@
-import { integer, json, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  integer,
+  json,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 import { generateId } from "../utils";
 import { user } from "./auth";
@@ -21,7 +28,7 @@ export const ingredient = pgTable("ingredient", {
     .notNull()
     .references(() => recipe.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  quantity: integer("quantity"),
+  quantity: numeric("quantity"),
   unit: text("unit"),
   note: text("note"),
   order: integer("order").notNull(),
