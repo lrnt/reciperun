@@ -93,7 +93,7 @@ const renderAnnotatedText = (
       // Format partial quantities
       const portionUsed = annotation.portionUsed;
       const scaledQuantity =
-        (ingredient.quantity ?? 0) * servingsMultiplier * portionUsed;
+        Number(ingredient.quantity ?? 0) * servingsMultiplier * portionUsed;
       const formattedQuantity = parseFloat(
         scaledQuantity.toFixed(2),
       ).toString();
@@ -102,7 +102,8 @@ const renderAnnotatedText = (
         : formattedQuantity;
     } else {
       // Full quantity
-      const scaledQuantity = (ingredient.quantity ?? 0) * servingsMultiplier;
+      const scaledQuantity =
+        Number(ingredient.quantity ?? 0) * servingsMultiplier;
       const formattedQuantity = parseFloat(
         scaledQuantity.toFixed(2),
       ).toString();
@@ -305,7 +306,8 @@ export default function RecipeDetailScreen() {
                 quantityText = ingredient.note;
               } else if (ingredient.quantity) {
                 // Calculate scaled quantity when it exists
-                const scaledQuantity = ingredient.quantity * servingsMultiplier;
+                const scaledQuantity =
+                  Number(ingredient.quantity) * servingsMultiplier;
 
                 // Format quantity - round to 2 decimal places and remove trailing zeros
                 const formattedQuantity = parseFloat(
