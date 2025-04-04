@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+
 import { db } from "./client";
 
 /**
@@ -16,16 +17,16 @@ async function clearDatabase() {
       WHERE schemaname = 'public'
       ORDER BY tablename;
     `);
-    
-    const tables = tablesResult.rows.map(row => row.tablename as string);
-    
+
+    const tables = tablesResult.rows.map((row) => row.tablename as string);
+
     if (tables.length === 0) {
       console.log("No tables found in the database.");
       return;
     }
-    
-    console.log(`Found ${tables.length} tables: ${tables.join(', ')}`);
-    
+
+    console.log(`Found ${tables.length} tables: ${tables.join(", ")}`);
+
     // Start a transaction
     await db.transaction(async (tx) => {
       // Truncate each table individually
@@ -34,7 +35,7 @@ async function clearDatabase() {
         console.log(`Cleared table: ${table}`);
       }
     });
-    
+
     console.log("Successfully cleared all tables in the database.");
   } catch (error) {
     console.error("Error clearing database:", error);
