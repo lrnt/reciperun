@@ -191,7 +191,7 @@ export function convertJsonLdToBasicRecipe(
     const description =
       typeof recipe.description === "string" ? recipe.description : "";
 
-    // Handle image URL (could be a string or an object with url property)
+    // Handle image URL (could be a string or an object with url property or an array)
     let imageUrl: string | undefined;
     if (typeof recipe.image === "string") {
       imageUrl = recipe.image;
@@ -202,6 +202,19 @@ export function convertJsonLdToBasicRecipe(
       typeof (recipe.image as { url: string }).url === "string"
     ) {
       imageUrl = (recipe.image as { url: string }).url;
+    } else if (Array.isArray(recipe.image) && recipe.image.length > 0) {
+      // If image is an array, try to get the first valid string
+      const firstImage = recipe.image[0] as unknown;
+      if (typeof firstImage === "string") {
+        imageUrl = firstImage;
+      } else if (
+        typeof firstImage === "object" &&
+        firstImage !== null &&
+        "url" in firstImage &&
+        typeof (firstImage as { url: string }).url === "string"
+      ) {
+        imageUrl = (firstImage as { url: string }).url;
+      }
     }
 
     // Parse cook time (PT1H30M format to minutes)

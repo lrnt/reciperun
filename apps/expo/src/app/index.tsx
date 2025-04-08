@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import type { RecipeListItem } from "@reciperun/trpc/recipes";
 
@@ -36,36 +36,18 @@ export default function RecipesScreen() {
     isRefetching,
   } = useQuery(trpc.recipes.getAll.queryOptions());
 
-  // Set up the import recipe mutation
-  const importMutation = useMutation(
-    trpc.recipes.importFromUrl.mutationOptions({
-      onSuccess: (_data) => {
-        setIsImportModalVisible(false);
-        setImportUrl("");
-
-        Alert.alert("Success", "Recipe imported successfully!", [
-          { text: "OK" },
-        ]);
-        // Refresh the recipe list
-        void refetch();
-      },
-      onError: (error) => {
-        Alert.alert(
-          "Import Failed",
-          `Failed to import recipe: ${error.message}`,
-          [{ text: "OK" }],
-        );
-      },
-    }),
-  );
-
   // Handle recipe import
   const handleImportRecipe = () => {
     if (!importUrl.trim()) {
       Alert.alert("Error", "Please enter a valid URL");
       return;
     }
-    importMutation.mutate({ url: importUrl.trim() });
+
+    // Close the modal
+    setIsImportModalVisible(false);
+
+    // Navigate to the import screen with the URL
+    router.push(`/recipe/import?url=${encodeURIComponent(importUrl.trim())}`);
   };
 
   // Determine if we're showing cached data
@@ -229,10 +211,8 @@ export default function RecipesScreen() {
         transparent={true}
         visible={isImportModalVisible}
         onRequestClose={() => {
-          if (!importMutation.isPending) {
-            setIsImportModalVisible(false);
-            setImportUrl("");
-          }
+          setIsImportModalVisible(false);
+          setImportUrl("");
         }}
       >
         <View className="flex-1 justify-center bg-black/50">
@@ -253,19 +233,15 @@ export default function RecipesScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
-              editable={!importMutation.isPending}
             />
 
             <View className="flex-row justify-end space-x-3">
               <TouchableOpacity
                 className="rounded-lg border border-gray-300 px-4 py-2"
                 onPress={() => {
-                  if (!importMutation.isPending) {
-                    setIsImportModalVisible(false);
-                    setImportUrl("");
-                  }
+                  setIsImportModalVisible(false);
+                  setImportUrl("");
                 }}
-                disabled={importMutation.isPending}
               >
                 <Text className="text-base font-medium text-gray-700">
                   Cancel
@@ -275,15 +251,9 @@ export default function RecipesScreen() {
               <TouchableOpacity
                 className="rounded-lg bg-blue-500 px-4 py-2"
                 onPress={handleImportRecipe}
-                disabled={importMutation.isPending || !importUrl.trim()}
+                disabled={!importUrl.trim()}
               >
-                {importMutation.isPending ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Text className="text-base font-medium text-white">
-                    Import
-                  </Text>
-                )}
+                <Text className="text-base font-medium text-white">Import</Text>
               </TouchableOpacity>
             </View>
           </View>

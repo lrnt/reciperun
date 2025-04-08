@@ -56,6 +56,8 @@ export async function fetchRecipeFromUrl(
     return failure(basicRecipeResult.error);
   }
 
+  console.log("basicRecipeScraper", basicRecipeResult.data);
+
   if (basicRecipeScraper === "json-ld") {
     const { data: saneRecipe } = await sanityCheckRecipe(
       basicRecipeResult.data,
